@@ -177,7 +177,7 @@ qcovar_string = ''.join([(' --qCovarCol=' + x) for x in qcovar])
 
 ## TODO multiple models
 ## TODO get betas
-bolt_c = ('/rds/general/project/uk-biobank-2017/live/sresources_latest/bin/BOLT-LMM_v2.3/bolt ' +
+bolt_c = ('bolt ' +
           ' --bfile=' + coreset_path +
           ' --noBgenIDcheck' +
           ' --bgenFile=' + bgen_tempfile +
