@@ -63,8 +63,8 @@ parser.add_argument('-v', '--version',
 
 args = parser.parse_args()
 
-## run mode
-run_mode = args.debug_mode
+## debug mode
+debug_mode = args.debug_mode
 
 
 json_file = args.json_file
@@ -89,6 +89,7 @@ thr_hwe = cfg['thr-hwe']
 serial_list = json.load(open(json_file, 'rb'))
 
 ## to debug
+print('\ndebug_mode: ' + str(debug_mode))
 if debug_mode:
     gen_base_index = 0
 else:
@@ -100,7 +101,7 @@ gen_base = serial_list['gen-list'][gen_base_index]
 
 print('gen_base: ' + gen_base)
 
-gen_base_tempdir = os.path.join(outdir, 'temp', ('temp_' + gen_base))
+gen_base_tempdir = os.path.join(outdir, 'temp', ('temp-' + gen_base))
 Path(gen_base_tempdir).mkdir(parents=True, exist_ok=True)
 
 input_bim = os.path.join(data_dir, (gen_base + '.bim'))

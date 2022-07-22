@@ -103,8 +103,11 @@ coreset_path = os.path.join(plink_dir, 'coreset')
 tempdir = os.path.join(outdir, 'temp')
 Path(tempdir).mkdir(parents=True, exist_ok=True)
 
-bgen_tempdir = os.path.join(outdir, 'temp', 'temp-bgen')
+bgen_tempdir = os.path.join(tempdir, 'temp-bgen')
 Path(bgen_tempdir).mkdir(parents=True, exist_ok=True)
+
+bolt_tempdir = os.path.join(tempdir, 'temp-bolt')
+Path(bolt_tempdir).mkdir(parents=True, exist_ok=True)
 
 bolt_dir = os.path.join(outdir, 'bolt')
 Path(bolt_dir).mkdir(parents=True, exist_ok=True)
@@ -152,12 +155,11 @@ os.system(bgen_c)
 ## == run bolt-lmm ==
 
 ## TODO multiple models
-stats_file = (os.path.join(bolt_dir, (imp_base + str(chr) + '_' + interval[0] + '-' +
+stats_file = (os.path.join(bolt_tempdir, (imp_base + str(chr) + '_' + interval[0] + '-' +
                                             interval[1] + '.model_1.coresnps')))
 
-stats_file_bgen_snps = (os.path.join(bolt_dir, (imp_base + str(chr) + '_' + interval[0] + '-' +
-                                            interval[1] + '.model_1.bolt')))
-
+stats_file_bgen_snps = (os.path.join(bolt_tempdir, (imp_base + str(chr) + '_' + interval[0] +
+                                                    '-' + interval[1] + '.model_1.bolt')))
 
 # phenotypes
 pheno_col = pheno_1.split(';')[0].split(',')[0]

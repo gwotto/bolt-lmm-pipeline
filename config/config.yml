@@ -13,11 +13,12 @@ pheno-1: "log_Mean_cIMT_Max;"
 ### input
 
 sample-file: /rds/general/project/medbio-epiukb-archive-2018/live/UKB_pheno/UKBdownloads/ukb23_imp_chr21_v2_s487406.sample
-pheno-file: /rds/general/user/gotto/home/test/bolt-lmm/test-3/data/sample.phenotype.txt
+pheno-file: /rds/general/user/gotto/home/project/bolt-lmm-pipeline/bolt-lmm-pipeline/data/sample.phenotype.txt
 fam-file: /rds/general/project/medbio-epiukb-archive-2018/live/UKB_pheno/UKBdownloads/ukb23_cal_chr21_v2_s488374.fam
 
 ### output
-outdir: /rds/general/user/gotto/ephemeral/test/bolt-lmm/test-pipeline-4/output
+### TODO user defined
+outdir: /rds/general/user/gotto/ephemeral/test/bolt-lmm/test-pipeline-5/output
 min-maf: 0.01
 min-info: 0.1
 

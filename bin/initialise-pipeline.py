@@ -79,7 +79,7 @@ echo_command = ["echo", "-e", "'%s'" % init_command]
 ## maybe take the qsub variables from config file
 ## qsub_var = cfg['qsub-var'] 
 
-qsub_command = ['qsub', '-S', '/bin/bash', '-o', log_dir, '-e', log_dir, '-V','-N', 'main', '-l', 'select=1:ncpus=1:mem=16gb', '-l', 'walltime=12:00:00']
+qsub_command = ['qsub', '-S', '/bin/bash', '-o', log_dir, '-e', log_dir, '-V','-N', 'main', '-l', 'select=1:ncpus=1:mem=16gb', '-l', 'walltime=24:00:00']
 
 ## because I use shell=TRUE, I can join array to string
 cmd = " ".join(echo_command) + " | " + " ".join(qsub_command)

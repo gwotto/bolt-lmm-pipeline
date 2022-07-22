@@ -7,6 +7,7 @@ import sys
 import time
 import uuid
 import json
+import pandas as pd
 from datetime import datetime
 from pathlib import Path
 
@@ -130,16 +131,22 @@ Path(log_dir).mkdir(parents=True, exist_ok=True)
 plink_dir = os.path.join(outdir, 'plink')
 Path(plink_dir).mkdir(parents=True, exist_ok=True)
 
-## not sure if I need this
-snp_dir = os.path.join(outdir, 'snpinfo')
-Path(snp_dir).mkdir(parents=True, exist_ok=True)
+bolt_dir = os.path.join(outdir, 'bolt')
+Path(bolt_dir).mkdir(parents=True, exist_ok=True)
+
+## don't think I need this
+# snp_dir = os.path.join(outdir, 'snpinfo')
+# Path(snp_dir).mkdir(parents=True, exist_ok=True)
     
 tempdir = os.path.join(outdir, 'temp')
 Path(tempdir).mkdir(parents=True, exist_ok=True)
 
-plink_tempdir = os.path.join(outdir, 'temp', 'temp-plink')
+plink_tempdir = os.path.join(tempdir, 'temp-plink')
 Path(plink_tempdir).mkdir(parents=True, exist_ok=True)
-    
+
+bolt_tempdir = os.path.join(tempdir, 'temp-bolt')
+Path(bolt_tempdir).mkdir(parents=True, exist_ok=True)
+
     
 ## == chromosomes, list of input files ==
 if 'chr-list' in cfg:
@@ -270,7 +277,7 @@ for idx, chr in enumerate(chr_list):
 
     nsnps = len(snp_array)
 
-    print('number of snps: ' + str(nsnps))
+    ## print('number of snps: ' + str(nsnps))
 
     # print(snp_array[0])
     # print(snp_array[-1])
@@ -279,7 +286,7 @@ for idx, chr in enumerate(chr_list):
     ## TODO: check if the chunk size and number of snps matters
     nchunks = -1 * (-nsnps // chunksize)
 
-    print('number of chunks: ' + str(nchunks))
+    ## print('number of chunks: ' + str(nchunks))
 
     ## is the position of the first snp be the right begin of the range?
 
@@ -353,20 +360,49 @@ out_1 = out_1.communicate()
 job_id_1 = out_1[0].decode('UTF-8').replace('.pbs', '').rstrip()
 print("\nrunning script run-bolt.py as job-id: " + job_id_1)
 
-# while True:
-#     qstat_1 = subprocess.Popen(['qstat', job_id_1], shell=True, stdout=subprocess.PIPE)
-#     qstat_1 = qstat_1.communicate()
-#     qstat_1 = qstat_1[0].decode('ascii')
-#     # print(qstat)
-#     # print(job_id)
-#     # if(qstat.find(job_id)):
-#     #     print("task in queue")
-#     if(job_id_1 in str(qstat_1)):
-#         print('task ' + job_id_1 + ' in queue')
-#         time.sleep(60)
-#     else:
-#         print('task ' + job_id_1 + ' finished')
-#         break
+while True:
+    qstat_1 = subprocess.Popen(['qstat', job_id_1], shell=True, stdout=subprocess.PIPE)
+    qstat_1 = qstat_1.communicate()
+    qstat_1 = qstat_1[0].decode('ascii')
+    #
+    print(qstat_1) ## to debug
+    print(job_id_1) ## to debug
+    if(qstat.find(job_id_1)): ## to debug
+        print("task in queue") ## to debug
+    #
+    if(job_id_1 in str(qstat_1)):
+        print('task ' + job_id_1 + ' in queue')
+        time.sleep(300)
+    else:
+        print('task ' + job_id_1 + ' finished')
+        print('\nqstat: ' + str(qstat_1)) ## to debug
+        break
+
+
+## == concatenating bolt chunks ==
+
+bolt_tempfile_list = []
+
+for chunk in chunk_list:
+
+    print('chunk: ' + str(chunk))
+    chr = chunk[0]
+    print('chr: ' + chr)
+    interval = chunk[1]
+
+    bolt_tempfile = os.path.join(bolt_tempdir, (imp_base + str(chr) + '_' + interval[0] + '-' +
+                                            interval[1] + '.model_1.bolt'))
+
+    bolt_tempfile_list.append(bolt_tempfile)
+
+## print(bolt_tempfile_list)
+
+bolt_df = pd.concat((pd.read_csv(f, sep = '\t', dtype={'CHR': 'str', 'BP': 'str', 'GENPOS' : 'str', 'CHISQ_BOLT_LMM_INF' : 'str'}) for f in bolt_tempfile_list), ignore_index=True)
+
+bolt_outfile = os.path.join(bolt_dir, 'model_1.bolt.txt')
+
+bolt_df.to_csv(bolt_outfile, sep='\t', index=False, quoting=None)
+
 
 
 ## TODO remove temp dir
