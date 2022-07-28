@@ -47,9 +47,9 @@ requiredNamed.add_argument('-c', '--config-file', dest = 'config_file', required
                     help = 'path to yaml configuration file',
                     type = lambda x: bolt.is_valid_file(parser, x))
 
-requiredNamed.add_argument('-j', '--json-file', dest = 'json_file',
+requiredNamed.add_argument('-f', '--data-file', dest = 'data_file',
                     required = True,
-                    help = 'path to serialized data', metavar = 'FILE',
+                    help = 'path to json data file', metavar = 'FILE',
                     type = lambda x: bolt.is_valid_file(parser, x))
 
 ## optional arguments
@@ -70,7 +70,7 @@ args = parser.parse_args()
 ## run mode
 debug_mode = args.debug_mode
 
-json_file = args.json_file
+data_file = args.data_file
 
 ## get configurations from yaml file
 yaml_file = args.config_file
@@ -93,34 +93,30 @@ min_maf = cfg['min-maf']
 min_info = cfg['min-info']
 ##
 
+## serialised json_list
+serial_list = json.load(open(data_file, 'rb'))
+
 
 ## == file paths ==
 
-plink_dir = os.path.join(outdir, 'plink')
-coreset_path = os.path.join(plink_dir, 'coreset')
+plink_dir = serial_list['plink-dir']
+bolt_dir = serial_list['bolt-dir']
+bolt_tempdir = serial_list['bolt-tempdir']
+tempdir = serial_list['tempdir']
+coreset_path = serial_list['coreset-path']
 
 ## creating directory, dealing with race condition
-tempdir = os.path.join(outdir, 'temp')
-Path(tempdir).mkdir(parents=True, exist_ok=True)
-
 bgen_tempdir = os.path.join(tempdir, 'temp-bgen')
 Path(bgen_tempdir).mkdir(parents=True, exist_ok=True)
 
-bolt_tempdir = os.path.join(tempdir, 'temp-bolt')
-Path(bolt_tempdir).mkdir(parents=True, exist_ok=True)
-
-bolt_dir = os.path.join(outdir, 'bolt')
-Path(bolt_dir).mkdir(parents=True, exist_ok=True)
-
-## serialised json_list
-json_list = json.load(open(json_file, 'rb'))
 
 ## to debug
 if debug_mode:
-    base_index = 0
+    pbs_array_index = 6
 else:
     pbs_array_index = os.environ['PBS_ARRAY_INDEX']
-    base_index = int(pbs_array_index) - 1
+
+base_index = int(pbs_array_index) - 1
 
 print('pbs array index: ' + str(pbs_array_index))
 print('debug mode: ' + str(debug_mode)) 
@@ -128,7 +124,7 @@ print('base index: ' + str(base_index))
     
 ## == generate bgenfile for range ==
 
-chunk = json_list['chunk-list'][base_index]
+chunk = serial_list['chunk-list'][base_index]
 
 print('chunk: ' + str(chunk))
 
@@ -144,12 +140,19 @@ bgen_tempfile= (os.path.join(bgen_tempdir, (imp_base + str(chr) + '_' + interval
 ## bgen range needs a leading 0 for 1-digit chromosomes (WTF!)
 bgen_range = str(chr).zfill(2) + ':' + interval[0] + '-' + interval[1]
 
-bgen_c = '/rds/general/project/uk-biobank-2017/live/sresources_latest/bin/bgen/apps/bgenix -g ' + bgen_file + ' -incl-range ' + bgen_range + ' > ' + bgen_tempfile
+bgen_c = 'bgenix -g ' + bgen_file + ' -incl-range ' + bgen_range + ' > ' + bgen_tempfile
 
-print('\ngenerating bgen file for range ' + bgen_range)
-print(bgen_c)
+print('\ngenerating bgen file for range ' + bgen_range + ' with command')
+print('\n' + bgen_c)
 
 os.system(bgen_c)
+
+bgen_idx_c = 'bgenix -g ' + bgen_tempfile + ' -index'
+
+print('\nindexing bgen file ' + bgen_tempfile)
+print('\n' + bgen_idx_c)
+
+os.system(bgen_idx_c)
 
 
 ## == run bolt-lmm ==

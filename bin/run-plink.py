@@ -40,9 +40,9 @@ requiredNamed.add_argument('-c', '--config-file', dest = 'config_file', required
                     help = 'path to yaml configuration file',
                     type = lambda x: bolt.is_valid_file(parser, x))
 
-requiredNamed.add_argument('-j', '--json-file', dest = 'json_file',
+requiredNamed.add_argument('-f', '--data-file', dest = 'data_file',
                     required = True,
-                    help = 'path to serialized data', metavar = 'FILE',
+                    help = 'path to json data file', metavar = 'FILE',
                     type = lambda x: bolt.is_valid_file(parser, x))
 
 ## optional arguments
@@ -67,7 +67,7 @@ args = parser.parse_args()
 debug_mode = args.debug_mode
 
 
-json_file = args.json_file
+data_file = args.data_file
 
 ## get configurations from yaml file
 yaml_file = args.config_file
@@ -86,22 +86,30 @@ thr_hwe = cfg['thr-hwe']
 
 ## serialised gen_base_list
 ## serial_list = pickle.load(open(jason_file, 'rb'))
-serial_list = json.load(open(json_file, 'rb'))
+serial_list = json.load(open(data_file, 'rb'))
 
 ## to debug
 print('\ndebug_mode: ' + str(debug_mode))
 if debug_mode:
-    gen_base_index = 0
+    pbs_array_index = 0
 else:
     pbs_array_index = os.environ['PBS_ARRAY_INDEX']
-    gen_base_index = int(pbs_array_index) - 1
 
+gen_base_index = int(pbs_array_index) - 1
+
+print('pbs array index: ' + str(pbs_array_index))
+print('debug mode: ' + str(debug_mode)) 
+print('base index: ' + str(gen_base_index))
 
 gen_base = serial_list['gen-list'][gen_base_index]
 
 print('gen_base: ' + gen_base)
 
-gen_base_tempdir = os.path.join(outdir, 'temp', ('temp-' + gen_base))
+tempdir = serial_list['tempdir']
+
+plink_tempdir = serial_list['plink-tempdir']
+
+gen_base_tempdir = os.path.join(tempdir, ('temp-' + gen_base))
 Path(gen_base_tempdir).mkdir(parents=True, exist_ok=True)
 
 input_bim = os.path.join(data_dir, (gen_base + '.bim'))
@@ -111,11 +119,6 @@ input_bed = os.path.join(data_dir, (gen_base + '.bed'))
 output_bed = os.path.join(gen_base_tempdir, (gen_base + '.bed')) 
 
 output_fam = os.path.join(gen_base_tempdir, (gen_base + '.fam')) 
-
-plink_tempdir = os.path.join(outdir, 'temp', 'temp-plink')
-if not os.path.exists(plink_tempdir):
-    print('creating directory ' + plink_tempdir + '\n')
-    os.makedirs(plink_tempdir)
 
 plink_path = os.path.join(plink_tempdir, (gen_base + '.coreset'))
 

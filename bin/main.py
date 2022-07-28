@@ -7,6 +7,7 @@ import sys
 import time
 import uuid
 import json
+import re
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
@@ -179,16 +180,18 @@ if n_chr != n_gen_base:
     
 tmp = uuid.uuid4().hex
 
-json_file_name = 'data_file_' + tmp + '.json'
+data_file_name = 'data_file_' + tmp + '.json'
 
 serial_data = {'chr-list': chr_list,
                'gen-list': gen_base_list,
-              'imp-list': imp_base_list}
+               'imp-list': imp_base_list,
+               'tempdir': tempdir,
+               'plink-tempdir': plink_tempdir}
 
-with open(json_file_name , "w" ) as fh:
+with open(data_file_name , "w" ) as fh:
     json.dump(serial_data, fh )
 
-pipeline_command = 'python3 ' + os.path.join(bindir, 'run-plink.py') + ' --config-file ' + yaml_file + ' --json-file ' + json_file_name
+pipeline_command = 'python3 ' + os.path.join(bindir, 'run-plink.py') + ' --config-file ' + yaml_file + ' --data-file ' + data_file_name
 
 echo_command = ["echo", "-e", "'%s'" % pipeline_command]
 
@@ -208,26 +211,72 @@ print('\nqsub command: ' + str(qsub_command))
 
 print('\ncommand: ' + cmd)
 
+## TODO: maybe better use subprocess.run
 out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
 out = out.communicate()
 
 job_id = out[0].decode('UTF-8').replace('.pbs', '').rstrip()
-print("\nrunning script run-plink.py as job-id: " + job_id)
+print("\nrunning script run-plink.py as job-id: " + job_id + 'test')
+
+
+## == monitoring the qsub processes ==
+
+## using qstat to monitor processes running run-bolt.py on the queue
+## in order to wait until all of them are finished. TODO: put this
+## into a function
 
 while True:
-    qstat = subprocess.Popen(['qstat', job_id], shell=True, stdout=subprocess.PIPE)
-    qstat = qstat.communicate()
-    qstat = qstat[0].decode('ascii')
-    # print(qstat)
-    # print(job_id)
-    # if(qstat.find(job_id)):
-    #     print("task in queue")
-    if(job_id in str(qstat)):
-        print('task ' + job_id + ' in queue')
-        time.sleep(60)
+    ## subprocess.run is synchronous, waits until it finishes and
+    ## returns a CompletedProcess object
+
+    ## would prefer to use qstat with job id but that does not seem to
+    ## work (qstat_stdout empty). Does not seem to find the process
+
+    ## qstat = subprocess.run(['qstat', job_id], capture_output=True)
+
+    qstat = subprocess.run(['qstat'], capture_output=True)
+    qstat_args = qstat.args
+    qstat_stdout = qstat.stdout.decode('ascii')
+    qstat_stderr = qstat.stderr.decode('ascii')
+    qstat_returncode = qstat.returncode
+    
+    print('\njob id:\n' + job_id) ## to debug
+    print('\nqstat stdout:\n' + qstat_stdout) ## to debug
+    print('\nqstat stderr:\n' + qstat_stderr) ## to debug
+    print('\nqstat returncode:\n' + str(qstat_returncode)) ## to debug
+
+    
+    ## checking if the job id is listed in the qstat stdoutput, if
+    ## not, wait 5 min until checking again
+    if(job_id in qstat_stdout):
+        time.sleep(300)
+        
     else:
-        print('task ' + job_id + ' finished')
-        break
+
+        ## if something unexpected happened and the return code of the qstat process is not 0, try again in 5 minutes
+        if(qstat_returncode != 0):
+            print('\nqstat returncode:\n' + str(qstat_returncode))
+            print('\nsomething unexpected')
+            time.sleep(300)
+        else:
+            print('\nqstat stdout:\n' + qstat_stdout)
+            print('\njob ' + job_id + ' has finished.') 
+            break
+
+        # ## check if qstat stderr states that the process is unknown
+        # ## (i.e. finished). If so, break out of the loop. escape
+        # ## special characters in pattern.
+        # qstat_stderr_pattern = r'.*Unknown.*' + re.escape(job_id)
+        # ## print('stderr search pattern: ' + qstat_stderr_pattern) ## to debug
+        
+        # if(re.match(qstat_stderr_pattern, qstat_stderr)):
+        #     print('\nqstat stderr:\n' + qstat_stderr)
+        #     print('task ' + job_id + ' finished')
+        #     break
+        ## if something unexpected happens, try again in 5 minutes
+        # else:
+        #     print('\nsomething unexpected')
+        #     time.sleep(300)
 
 
 ## == merging core SNP sets ==
@@ -257,6 +306,8 @@ plink_out = plink_out.communicate()
 
 
 ## == creating subsets of bgen files in chunksize bins ==
+
+## TODO put in library
 
 ## ((chr1, (chunk1, chunk2)), (chr1, (chunk3, chunk4)), (chr2, (chunk1, chunk2)))
 
@@ -320,28 +371,33 @@ for idx, chr in enumerate(chr_list):
             limit_upper_pos = snp_array[-1]
             chunk_list.append((chr, (limit_lower_pos, limit_upper_pos)))
         
-print('\nlist of chunks:\n', chunk_list)
+## print('\nlist of chunks:\n', chunk_list)
 
 ## serialising chunk_list
 tmp = uuid.uuid4().hex
 
-json_file_name = 'data_file_' + tmp + '.json'
+data_file_name = 'data_file_' + tmp + '.json'
 
 serial_data = {'chr-list': chr_list,
                'chunk-list': chunk_list,
-               'imp-list': imp_base_list}
+               'imp-list': imp_base_list,
+               'tempdir': tempdir,
+               'plink-dir': plink_dir,
+               'bolt-dir': bolt_dir,
+               'bolt-tempdir': bolt_tempdir,
+               'coreset-path': coreset_path}
 
-with open(json_file_name , "w" ) as fh:
+with open(data_file_name , "w" ) as fh:
     json.dump(serial_data, fh )
 
 
 ### now step 3 for each chunk
 
-pipeline_command_1 = 'python3 ' + os.path.join(bindir, 'run-bolt.py') + ' --config-file ' + yaml_file + ' --json-file ' + json_file_name
+pipeline_command_1 = 'python3 ' + os.path.join(bindir, 'run-bolt.py') + ' --config-file ' + yaml_file + ' --data-file ' + data_file_name
 
 echo_command_1 = ["echo", "-e", "'%s'" % pipeline_command_1]
 
-qsub_command_1 = ['qsub', '-S', '/bin/bash', '-o', log_dir, '-e', log_dir, '-V','-N', 'run-bolt', '-J', ('1-' + str(len(chunk_list))), '-l', 'select=1:ncpus=1:mem=48gb', '-l', 'walltime=12:00:00']
+qsub_command_1 = ['qsub', '-S', '/bin/bash', '-o', log_dir, '-e', log_dir, '-V','-N', 'run-bolt', '-J', ('1-' + str(len(chunk_list))), '-l', 'select=1:ncpus=1:mem=48gb', '-l', 'walltime=24:00:00']
 
 ## because I use shell=TRUE, I can join array to string
 cmd_1 = " ".join(echo_command_1) + " | " + " ".join(qsub_command_1)
@@ -360,24 +416,62 @@ out_1 = out_1.communicate()
 job_id_1 = out_1[0].decode('UTF-8').replace('.pbs', '').rstrip()
 print("\nrunning script run-bolt.py as job-id: " + job_id_1)
 
-while True:
-    qstat_1 = subprocess.Popen(['qstat', job_id_1], shell=True, stdout=subprocess.PIPE)
-    qstat_1 = qstat_1.communicate()
-    qstat_1 = qstat_1[0].decode('ascii')
-    #
-    print(qstat_1) ## to debug
-    print(job_id_1) ## to debug
-    if(qstat.find(job_id_1)): ## to debug
-        print("task in queue") ## to debug
-    #
-    if(job_id_1 in str(qstat_1)):
-        print('task ' + job_id_1 + ' in queue')
-        time.sleep(300)
-    else:
-        print('task ' + job_id_1 + ' finished')
-        print('\nqstat: ' + str(qstat_1)) ## to debug
-        break
+## == monitoring the qsub processes ==
 
+## using qstat to monitor processes running run-bolt.py on the queue
+## in order to wait until all of them are finished. TODO: put this
+## into a function
+
+while True:
+    ## subprocess.run is synchronous, waits until it finishes and
+    ## returns a CompletedProcess object
+    
+    ## would prefer to use qstat with job id but that does not seem to
+    ## work (qstat_stdout empty). Does not seem to find the process.
+    qstat_1 = subprocess.run(['qstat'], capture_output=True)
+    ## qstat_1 = subprocess.run(['qstat', job_id_1], capture_output=True)
+
+    qstat_1_stdout = qstat_1.stdout.decode('ascii')
+    qstat_1_stderr = qstat_1.stderr.decode('ascii')
+    qstat_1_returncode = qstat_1.returncode
+    
+    print('\njob id:\n' + job_id_1) ## to debug
+    print('\nqstat stdout:\n' + qstat_1_stdout) ## to debug
+    print('\nqstat stderr:\n' + qstat_1_stderr) ## to debug
+    print('\nqstat returncode:\n' + str(qstat_1_returncode))
+    
+    ## checking if the job id is listed in the qstat stdoutput, if
+    ## not, wait 5 min until checking again
+    if(job_id_1 in qstat_1_stdout):
+        ## print('task ' + job_id_1 + ' in queue')
+        time.sleep(300)
+        
+    else:
+
+        ## if something unexpected happened and the return code of the qstat process is not 0, try again in 5 minutes
+        if(qstat_1_returncode != 0):
+            print('\nqstat returncode:\n' + str(qstat_1_returncode))
+            print('\nsomething unexpected')
+            time.sleep(300)
+        else:
+            print('\nqstat stdout:\n' + qstat_1_stdout)
+            print('\njob ' + job_id_1 + ' has finished.') 
+            break
+
+        # ## check if qstat stderr states that the process is unknown
+        # ## (i.e. finished). If so, break out of the loop. escape
+        # ## special characters in pattern
+        # qstat_1_stderr_pattern = r'.*Unknown.*' + re.escape(job_id_1)
+        # ## print('stderr search pattern: ' + qstat_stderr_pattern) ## to debug
+
+        # if(re.match(qstat_1_stderr_pattern, qstat_1_stderr)):
+        #     print('\nqstat stderr:\n' + qstat_1_stderr)
+        #     print('task ' + job_id_1 + ' finished')
+        break
+        ## if something unexpected happens, try again in 5 minutes
+        # else:
+        #     print('\nsomething unexpected')
+        #     time.sleep(300)
 
 ## == concatenating bolt chunks ==
 
@@ -385,9 +479,9 @@ bolt_tempfile_list = []
 
 for chunk in chunk_list:
 
-    print('chunk: ' + str(chunk))
+    ## print('chunk: ' + str(chunk))
     chr = chunk[0]
-    print('chr: ' + chr)
+    ## print('chr: ' + chr)
     interval = chunk[1]
 
     bolt_tempfile = os.path.join(bolt_tempdir, (imp_base + str(chr) + '_' + interval[0] + '-' +

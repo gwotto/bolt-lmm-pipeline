@@ -3,6 +3,12 @@
 ### USER PARAMETERS ########################################################
 ############################################################################
 
+## example pheno file. See the example file sample.phenotype.txt  in the data directory
+pheno-file:
+
+### output directory to be defined by the user
+outdir: 
+
 ## TODO check why this syntax is used, otherwise simplyfy
 ### models. syntax: COV_i=[cat_cov1,...,cat_covn];[quant_cov1,...,quant_covn]
 cov-1: "Sex,Center;Age,PC1,PC2,PC3,PC4"
@@ -10,17 +16,17 @@ cov-1: "Sex,Center;Age,PC1,PC2,PC3,PC4"
 ### phenotypes. syntax: PHENO_j=phenotype;[excl_indivs_file]
 pheno-1: "log_Mean_cIMT_Max;"
 
-### input
-
-sample-file: /rds/general/project/medbio-epiukb-archive-2018/live/UKB_pheno/UKBdownloads/ukb23_imp_chr21_v2_s487406.sample
-pheno-file: /rds/general/user/gotto/home/project/bolt-lmm-pipeline/bolt-lmm-pipeline/data/sample.phenotype.txt
-fam-file: /rds/general/project/medbio-epiukb-archive-2018/live/UKB_pheno/UKBdownloads/ukb23_cal_chr21_v2_s488374.fam
-
-### output
-### TODO user defined
-outdir: /rds/general/user/gotto/ephemeral/test/bolt-lmm/test-pipeline-5/output
 min-maf: 0.01
 min-info: 0.1
+
+
+############################################################################
+### INPUT DATA ########################################################
+############################################################################
+
+sample-file: /rds/general/project/medbio-epiukb-archive-2018/live/UKB_pheno/UKBdownloads/ukb23_imp_chr21_v2_s487406.sample
+fam-file: /rds/general/project/medbio-epiukb-archive-2018/live/UKB_pheno/UKBdownloads/ukb23_cal_chr21_v2_s488374.fam
+
 
 ### UK Biobank release version
 # sdata_12072017: initial 2017 release (v2), points to files in release_12072017, constrained to HRC-panel
@@ -56,8 +62,8 @@ thr-maf: 0.05
 thr-geno: 0.015
 thr-hwe: 1e-6
 
-### execution parameters
-chunksize: 5000000
+### execution parameters: 2x10^6 snps per chunk
+chunksize: 2000000
 nnodes: 1 # per job
 
 ## comma-separated list of chromosomes, if commented out the default set of 1..22 will be used
@@ -72,5 +78,5 @@ gen-base: ukb_gen_chr
 module-init: /usr/share/Modules/init/python.py 
 
 ## comma separated list of modules
-module-list: plink/1.90p, bolt-lmm/2.3.2
+module-list: plink/1.90p, bolt-lmm/2.3.2, bgenix/2017-05-15
 

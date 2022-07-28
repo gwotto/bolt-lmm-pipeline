@@ -5,11 +5,11 @@ environment path. On Imperial hpc cluster, this is achieved by two
 methods:
 
 1. Modules to load installed software into the search path. this is
-   carried out by the pipeline itself. A list of required modules
-   needs to be in the configuration file.
-2. Conda enironment, a virtual enverinment of the user, providing
-   python, python packages and other software defined by the user. For
-   instructions on how to use a conda environment see
+   carried out by the pipeline itself. Required modules need to be
+   listed in the configuration file.
+2. The Conda enironment, providing python, python packages and other
+   software defined by the user. For instructions on how to use a
+   conda environment see
    https://www.imperial.ac.uk/admin-services/ict/self-service/research-support/rcs/support/applications/python/
    Before using the conda environment for this pipeline for the first
    time, you need to set it up and install some python modules.
@@ -23,56 +23,55 @@ conda install yaml
 
 ## Configuration
 
-The pipeline run is configured by the yaml-format file config.yml. An
+A pipeline run is configured by the yaml-format file config.yml. An
 example configuration file is located in
-~/project/bolt-lmm-pipeline/bolt-lmm-pipeline/config/config.yml. Copy
+/rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/config/config.yml. Copy
 this file to a convenient location and edit the configuration to your
 needs. For pipeline tests, the phenotype file in
-~/project/bolt-lmm-pipeline/bolt-lmm-pipeline/data/sample.phenotype.txt
+/rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/data/sample.phenotype.txt
 can be used. At least the output directory needs to be adjusted. For
-debug purposes, the pipline currently keeps many intermediate files
+debug purposes, the pipeline currently keeps many intermediate files
 that need a large storage space, therefore it is recommended to choose
-an output directory on the ephemeral space.
+an output directory on the ephemeral space and copy the relevant
+output to a better location.
 
 
 ## How to run the pipeline
 
-First load the conda environment
+1. Loading the conda environment.
 
 ```bash
 module load anaconda3/personal
 ```
 
-1. Pipeline help message
+2. Starting the pipeline
 
 ``` bash
-python3 ~/project/bolt-lmm-pipeline/bolt-lmm-pipeline/bin/initialise-pipeline.py -h
+python /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/bin/initialise-pipeline.py --config-file config.yml
 
 ```
 
-2. Start the pipeline
+3. Pipeline help message
 
 ``` bash
-python3 ~/project/bolt-lmm-pipeline/bolt-lmm-pipeline/bin/initialise-pipeline.py --config-file config.yml
+python /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/bin/initialise-pipeline.py -h
 
 ```
-
-
 
 ## Data files
 
-To compute association statistics at SNPs in one or more BGEN data files, specify the .bgen file(s) with --bgenFile and the corresponding .sample file with --sampleFile.
+To compute association statistics at SNPs in one or more BGEN data files, specify the .bgen file(s) with --bgenFile and the corresponding 
 
-1. phenotype file
-   phenotypes and covariates
-2. sample file
-   To compute association statistics at SNPs in one or more BGEN data files, specify the .bgen file(s) with --bgenFile and the corresponding .sample file with --sampleFile.
+1. Phenotype file: phenotypes and covariates
+2. Sample file (--sampleFile argument).
+3. Genotype file in .bgen format (--bgenFile argument). 
 
 ## Version history
-  * 0.01 (2022-07-22)
+  * 0.01 (2022-07-28)
 	First version running on hpc cluster
 
 ## TODO
+  * variant annotation
   * multiple models in parallel
   * bolt core SNPs concatenation?
   * job names in logs
