@@ -62,9 +62,15 @@ python /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/bin/
 
 To compute association statistics at SNPs in one or more BGEN data files, specify the .bgen file(s) with --bgenFile and the corresponding 
 
-1. Phenotype file: phenotypes and covariates
-2. Sample file (--sampleFile argument).
-3. Genotype file in .bgen format (--bgenFile argument). 
+1. Phenotype file, containing phenotypes and covariates, with the
+   first line containing column headers and subsequent lines
+   containing records, one per individual. The first two columns must
+   be FID and IID (the PLINK identifiers of an individual). Any number
+   of columns may follow. Values of -9 and NA are interpreted as
+   missing data. All other values in the column should be numeric.
+2. fam file (?)
+2. Sample file (bolt --sampleFile argument).
+3. Genotype file in .bgen format (bolt --bgenFile argument). 
 
 ## Version history
   * 0.01 (2022-07-28)

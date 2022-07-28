@@ -206,6 +206,7 @@ bolt_c = ('bolt ' +
 print('\nrunning bolt-lmm with command')
 print('\n' + bolt_c)
 
+## not rather subprocess.run ?
 os.system(bolt_c)
 
 print('\nfinished running bolt-lmm at: ' + str(datetime.now()))
@@ -281,28 +282,3 @@ print('\nfinished running bolt-lmm at: ' + str(datetime.now()))
 #     modelIndex = modelIndex + 1 
 #   }
 # }
-
-
-
-
-# ### CALCULATING WHERE TO SPLIT INTO CHUNKS
-# NSNPS=$(wc -l < $SNPSFILE)
-# NCHUNKS=$(($(($NSNPS+$CHUNKSIZE-1))/$CHUNKSIZE))
-# split -n l/$NCHUNKS $SNPSFILE --filter='tail -n1' | cut -f4 > $LIMITSFILE
-# sed -i "1i 0" $LIMITSFILE
-
-# ### GENERATE AND RUN THE MASTER SCRIPT WITH THE JOB ARRAY
-# # reserve N*M/4 bytes, as suggested by Bolt-LMM's author
-# # running time scales with N*Me1.5
-# MEMORY=72
-# #WALLTIMEHOURS=$(qmgr -c "list queue med-bio" | grep resources_max.walltime | sed 's/.* \([0-9]\+\).*/\1/')
-# #WALLTIMEHOURS=$(qmgr -c 'p s' | grep medbio-large | grep resources_max.walltime | awk {'print $6'})
-# WALLTIMEHOURS=72
-# # run the R script that generates and runs the PBS script
-# source ${CMDPATH}/r_env.sh 
-# Rscript $CMDPATH/step4.r $PARAMS $WALLTIMEHOURS $NNODES $MEMORY $NCHUNKS $LIMITSFILE $BGENFILE $CHR $ANALYSISID $OUTPATH
-
-
-## generate bgenfile for range
-## /rds/general/project/uk-biobank-2017/live/sresources_latest/bin/bgen/apps/bgenix -g  /rds/general/project/uk-biobank-2017/live/reference/sdata_latest/ukb_imp_chr1.bgen -incl-range 01:1-100000 > output.bgen
-

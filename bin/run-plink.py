@@ -79,10 +79,11 @@ outdir = cfg['outdir']
 data_dir = cfg['data-dir'] 
 fam_file = cfg['fam-file']
 pheno_file = cfg['pheno-file']
+
+### filtering parameters for the selection of core SNPs
 thr_maf = cfg['thr-maf']
 thr_geno = cfg['thr-geno']
 thr_hwe = cfg['thr-hwe']
-
 
 ## serialised gen_base_list
 ## serial_list = pickle.load(open(jason_file, 'rb'))
@@ -128,26 +129,30 @@ awk_c = "awk 'BEGIN { OFS = \"\t\"} {print $1,$1\"_\"$4\"_\"$5\"_\"$6\"_1\",$3,$
 link_c = 'ln -s ' + input_bed + ' ' + output_bed
 copy_c = 'cp ' + fam_file + ' ' + output_fam
 
+## links the ukb_gen_chr*.bed file, writes a modified ukb_gen_chr*.bim
+## and copies a (common) fam file to the respective temp-ukb_gen_chr*
+## directory
 print("processing input files")
 print(awk_c + '\n')
 print(link_c + '\n')
 print(copy_c + '\n')
 
-
 os.system(awk_c)
 os.system(link_c)
 os.system(copy_c)
 
-
+## creates ukb_gen_chr*.coreset files in temp-plink directory: .bed .bim .fam .log .nosex 
 plink_c = 'plink --bfile ' + gen_base_path + ' --keep ' + pheno_file + ' --maf ' + str(thr_maf) + ' --geno ' + str(thr_geno) + ' --hwe ' + (thr_hwe) + ' --make-bed  --out ' + plink_path
 
 print("running plink")
 print(plink_c + '\n')
 
+## not rather subprocess.run ?
 os.system(plink_c)
 
-out = subprocess.Popen(plink_c, shell=True, stdout=subprocess.PIPE)
-out = out.communicate()
+## 2022-07-28 fond this not uncommented. what did this do here?
+# out = subprocess.Popen(plink_c, shell=True, stdout=subprocess.PIPE)
+# out = out.communicate()
 
 print('\nfinished running plink at: ' + str(datetime.now()))
 
