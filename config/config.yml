@@ -78,5 +78,5 @@ gen-base: ukb_gen_chr
 module-init: /usr/share/Modules/init/python.py 
 
 ## comma separated list of modules
-module-list: plink/1.90p, bolt-lmm/2.3.2, bgenix/2017-05-15
+module-list: plink/1.90p, bolt-lmm/2.3, bgenix/2017-05-15
 
