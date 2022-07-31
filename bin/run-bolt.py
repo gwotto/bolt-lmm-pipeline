@@ -4,7 +4,6 @@ import yaml
 import re
 import argparse
 import sys
-import uuid
 import socket
 import json
 from datetime import datetime
@@ -35,11 +34,11 @@ print('Host: ' + host)
 print('Start time: ' + str(datetime.now()))
 
 
-## parse import arguments
+## == parsing arguments ==
+
 parser = argparse.ArgumentParser(description = "initializing bolt-lmm analysis pipeline")
 
-
-## list the following arguments as required arguments instead of optional arguments
+## required arguments
 
 requiredNamed = parser.add_argument_group('required named arguments')
 
@@ -72,6 +71,9 @@ debug_mode = args.debug_mode
 
 data_file = args.data_file
 
+
+## == configurations ==
+
 ## get configurations from yaml file
 yaml_file = args.config_file
 
@@ -87,10 +89,12 @@ imp_base = cfg['imp-base']
 
 pheno_1 = cfg['pheno-1']
 cov_1 = cfg['cov-1']
-nnodes = cfg['nnodes']
+ncpus = str(cfg['ncpus'])
 ldscore_file = cfg['ldscore-file']
 min_maf = cfg['min-maf']
 min_info = cfg['min-info']
+
+remove_file = cfg['remove-file']
 ##
 
 ## serialised json_list
@@ -122,7 +126,8 @@ print('pbs array index: ' + str(pbs_array_index))
 print('debug mode: ' + str(debug_mode)) 
 print('base index: ' + str(base_index))
     
-## == generate bgenfile for range ==
+
+## == generating bgenfile for range ==
 
 chunk = serial_list['chunk-list'][base_index]
 
@@ -147,6 +152,7 @@ print('\n' + bgen_c)
 
 os.system(bgen_c)
 
+## bgen index
 bgen_idx_c = 'bgenix -g ' + bgen_tempfile + ' -index'
 
 print('\nindexing bgen file ' + bgen_tempfile)
@@ -166,18 +172,37 @@ stats_file_bgen_snps = (os.path.join(bolt_tempdir, (imp_base + str(chr) + '_' + 
 
 # phenotypes
 pheno_col = pheno_1.split(';')[0].split(',')[0]
-print(pheno_col)
+print('\nphenotype: ' + pheno_col)
 
 # categorial covariates
 ccovar = cov_1.split(';')[0].split(',')
-ccovar_string = ''.join([(' --covarCol=' + x) for x in ccovar])
 
-## print(ccovar_string)
+## test if there are categorial covariates
+if(ccovar[0] != ''):
+    print('\ncategorial covariate(s): ' + str(ccovar))
+    ccovar_string = ''.join([(' --covarCol=' + x) for x in ccovar])
+else:
+    ccovar_string = ''
 
 # quantitative covariates
 qcovar = cov_1.split(';')[1].split(',')
-qcovar_string = ''.join([(' --qCovarCol=' + x) for x in qcovar])
 
+## test if there are quantitative covariates
+if(qcovar[0] != ''):
+    print('\nquantitative covariate(s): ' + str(qcovar))
+    qcovar_string = ''.join([(' --qCovarCol=' + x) for x in qcovar])
+else:
+    qcovar_string = ''
+
+
+
+## if there is a file with samples to remove
+if(remove_file):
+    print('\nsamples to remove in file: ' + remove_file)
+    remove_string = ' --remove=' + remove_file
+else:
+    remove_string = ''
+    
 ## TODO multiple models
 ## TODO get betas
 bolt_c = ('bolt ' +
@@ -190,7 +215,7 @@ bolt_c = ('bolt ' +
           ' --lmm' +
           ' --covarMaxLevels=50 ' +
           ' --h2gGuess=0.15 ' +
-          ' --numThreads=' + str(nnodes) +
+          ' --numThreads=' + ncpus +
           ' --LDscoresFile=' + ldscore_file +
           ' --LDscoresMatchBp' +
           ' --verboseStats' +
@@ -200,7 +225,8 @@ bolt_c = ('bolt ' +
           ' --statsFileBgenSnps=' + stats_file_bgen_snps +
           ' --covarFile=' + pheno_file +
           ccovar_string +
-          qcovar_string
+          qcovar_string +
+          remove_string
           )
 
 print('\nrunning bolt-lmm with command')

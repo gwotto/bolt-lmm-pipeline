@@ -28,8 +28,12 @@ print('Version: ' + version)
 print('Host: ' + host)
 print('Start time: ' + str(datetime.now()))
 
-## parse import arguments
+
+## == parsing arguments
+
 parser = argparse.ArgumentParser(description = "initializing bolt-lmm analysis pipeline")
+
+## required arguments
 
 ## this is a trick to list the following arguments as required
 ## arguments instead of optional arguments, see
@@ -59,15 +63,17 @@ parser.add_argument('-v', '--version',
 
 # parser.add_argument('-h', '--help',
 #                     ## metavar = '',
-#                     help='prints out the version of the program')
+#                     help='prints out the help message')
 
 args = parser.parse_args()
 
 ## debug mode
 debug_mode = args.debug_mode
 
-
 data_file = args.data_file
+
+
+## == configuration ==
 
 ## get configurations from yaml file
 yaml_file = args.config_file
@@ -106,11 +112,16 @@ gen_base = serial_list['gen-list'][gen_base_index]
 
 print('gen_base: ' + gen_base)
 
+
+## == file paths ==
+
 tempdir = serial_list['tempdir']
 
 plink_tempdir = serial_list['plink-tempdir']
 
 gen_base_tempdir = os.path.join(tempdir, ('temp-' + gen_base))
+
+print('\ncreating directory: ' + gen_base_tempdir)
 Path(gen_base_tempdir).mkdir(parents=True, exist_ok=True)
 
 input_bim = os.path.join(data_dir, (gen_base + '.bim'))
@@ -125,6 +136,9 @@ plink_path = os.path.join(plink_tempdir, (gen_base + '.coreset'))
 
 gen_base_path = os.path.join(gen_base_tempdir, gen_base)
 
+
+## == data files for plink ==
+
 awk_c = "awk 'BEGIN { OFS = \"\t\"} {print $1,$1\"_\"$4\"_\"$5\"_\"$6\"_1\",$3,$4,$5,$6}' " + input_bim + ' > ' + output_bim
 link_c = 'ln -s ' + input_bed + ' ' + output_bed
 copy_c = 'cp ' + fam_file + ' ' + output_fam
@@ -132,7 +146,7 @@ copy_c = 'cp ' + fam_file + ' ' + output_fam
 ## links the ukb_gen_chr*.bed file, writes a modified ukb_gen_chr*.bim
 ## and copies a (common) fam file to the respective temp-ukb_gen_chr*
 ## directory
-print("processing input files")
+print("\nprocessing input files")
 print(awk_c + '\n')
 print(link_c + '\n')
 print(copy_c + '\n')
@@ -140,6 +154,9 @@ print(copy_c + '\n')
 os.system(awk_c)
 os.system(link_c)
 os.system(copy_c)
+
+
+## == running plink ==
 
 ## creates ukb_gen_chr*.coreset files in temp-plink directory: .bed .bim .fam .log .nosex 
 plink_c = 'plink --bfile ' + gen_base_path + ' --keep ' + pheno_file + ' --maf ' + str(thr_maf) + ' --geno ' + str(thr_geno) + ' --hwe ' + (thr_hwe) + ' --make-bed  --out ' + plink_path

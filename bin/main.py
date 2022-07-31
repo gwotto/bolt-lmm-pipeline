@@ -8,6 +8,7 @@ import time
 import uuid
 import json
 import re
+import shutil
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
@@ -64,15 +65,15 @@ parser.add_argument('-v', '--version',
 
 # parser.add_argument('-h', '--help',
 #                     ## metavar = '',
-#                     help='prints out the version of the program')
+#                     help='prints out the help message')
 
 args = parser.parse_args()
 
 ## run mode
 run_mode = args.debug_mode
 
-print('\nProgram: ' + program)
-print('\nVersion: ' + version)
+
+## == configuration ==
 
 ## get configurations from yaml file
 yaml_file = args.config_file
@@ -86,8 +87,12 @@ imp_base = cfg['imp-base']
 
 outdir = cfg['outdir']
 data_dir = cfg['data-dir']
+temp_parent = os.path.expandvars(cfg['tempdir'])
+
+temp_delete = cfg['temp-delete']
 
 chunksize = cfg['chunksize']
+ncpus = str(cfg['ncpus'])
 
 ## print(sample_file)
 
@@ -135,11 +140,8 @@ Path(plink_dir).mkdir(parents=True, exist_ok=True)
 bolt_dir = os.path.join(outdir, 'bolt')
 Path(bolt_dir).mkdir(parents=True, exist_ok=True)
 
-## don't think I need this
-# snp_dir = os.path.join(outdir, 'snpinfo')
-# Path(snp_dir).mkdir(parents=True, exist_ok=True)
-    
-tempdir = os.path.join(outdir, 'temp')
+tempdir = os.path.join(temp_parent, ('tempdir_' +  uuid.uuid4().hex))
+print('\ncreating temporary directory ' + tempdir)
 Path(tempdir).mkdir(parents=True, exist_ok=True)
 
 plink_tempdir = os.path.join(tempdir, 'temp-plink')
@@ -150,6 +152,7 @@ Path(bolt_tempdir).mkdir(parents=True, exist_ok=True)
 
     
 ## == chromosomes, list of input files ==
+
 if 'chr-list' in cfg:
     chr_list = cfg['chr-list']
     chr_list = chr_list.replace(" ", "")
@@ -159,7 +162,6 @@ else:
     print("no chromosome list in config file, using default set: " + str(chr_list) + '\n')
     
 n_chr = len(chr_list)
-
 
 ## concatenating gen_base string with each chromosome name
 gen_base_list = list(map(lambda chr: gen_base + str(chr), chr_list))
@@ -175,12 +177,11 @@ n_gen_base = len(gen_base_list)
 if n_chr != n_gen_base:
     sys.exit('number of chromosomes ' + n_chr +  ' and number of basenames ' + n_gen_base + ' do not match.')
 
-    
-## == serialising gen_base_list ==
-    
-tmp = uuid.uuid4().hex
 
-data_file_name = 'data_file_' + tmp + '.json'
+
+## == serialising data for run-plink.py ==
+
+json_file_plink = os.path.join(tempdir, ('data_file_' + uuid.uuid4().hex + '.json'))
 
 serial_data = {'chr-list': chr_list,
                'gen-list': gen_base_list,
@@ -188,10 +189,13 @@ serial_data = {'chr-list': chr_list,
                'tempdir': tempdir,
                'plink-tempdir': plink_tempdir}
 
-with open(data_file_name , "w" ) as fh:
+with open(json_file_plink, "w" ) as fh:
     json.dump(serial_data, fh )
 
-pipeline_command = 'python3 ' + os.path.join(bindir, 'run-plink.py') + ' --config-file ' + yaml_file + ' --data-file ' + data_file_name
+
+## == running plink ==
+    
+pipeline_command = 'python3 ' + os.path.join(bindir, 'run-plink.py') + ' --config-file ' + yaml_file + ' --data-file ' + json_file_plink
 
 echo_command = ["echo", "-e", "'%s'" % pipeline_command]
 
@@ -240,10 +244,10 @@ while True:
     qstat_stderr = qstat.stderr.decode('ascii')
     qstat_returncode = qstat.returncode
     
-    print('\njob id:\n' + job_id) ## to debug
-    print('\nqstat stdout:\n' + qstat_stdout) ## to debug
-    print('\nqstat stderr:\n' + qstat_stderr) ## to debug
-    print('\nqstat returncode:\n' + str(qstat_returncode)) ## to debug
+    # print('\njob id:\n' + job_id) ## to debug
+    # print('\nqstat stdout:\n' + qstat_stdout) ## to debug
+    # print('\nqstat stderr:\n' + qstat_stderr) ## to debug
+    # print('\nqstat returncode:\n' + str(qstat_returncode)) ## to debug
 
     
     ## checking if the job id is listed in the qstat stdoutput, if
@@ -279,11 +283,10 @@ while True:
         #     time.sleep(300)
 
 
+
 ## == merging core SNP sets ==
 
 print('\nmerging core SNP sets.')
-
-## gen_base_list = list(map(lambda chr: gen_base + str(chr), chr_list))
 
 coreset_list_file = os.path.join(plink_tempdir, 'basename.list')
 
@@ -305,10 +308,11 @@ plink_out = subprocess.Popen(plink_command, shell=True, stdout=subprocess.PIPE)
 plink_out = plink_out.communicate()
 
 
-## == creating subsets of bgen files in chunksize bins ==
+
+## == creating subsets of bgen files in chunk size bins ==
 
 ## TODO put in library
-
+## array of tuples
 ## ((chr1, (chunk1, chunk2)), (chr1, (chunk3, chunk4)), (chr2, (chunk1, chunk2)))
 
 chunk_list = []
@@ -334,7 +338,6 @@ for idx, chr in enumerate(chr_list):
     # print(snp_array[-1])
 
     ## ceiling division (sign inverted floor division) to get number of chunks
-    ## TODO: check if the chunk size and number of snps matters
     nchunks = -1 * (-nsnps // chunksize)
 
     ## print('number of chunks: ' + str(nchunks))
@@ -373,10 +376,10 @@ for idx, chr in enumerate(chr_list):
         
 ## print('\nlist of chunks:\n', chunk_list)
 
-## serialising chunk_list
-tmp = uuid.uuid4().hex
 
-data_file_name = 'data_file_' + tmp + '.json'
+## == serialising data for run-bolt.py ==
+
+json_file_bolt = os.path.join(tempdir, ('data_file_' + uuid.uuid4().hex + '.json'))
 
 serial_data = {'chr-list': chr_list,
                'chunk-list': chunk_list,
@@ -387,17 +390,17 @@ serial_data = {'chr-list': chr_list,
                'bolt-tempdir': bolt_tempdir,
                'coreset-path': coreset_path}
 
-with open(data_file_name , "w" ) as fh:
+with open(json_file_bolt, "w" ) as fh:
     json.dump(serial_data, fh )
 
 
-### now step 3 for each chunk
+## == running bolt ==
 
-pipeline_command_1 = 'python3 ' + os.path.join(bindir, 'run-bolt.py') + ' --config-file ' + yaml_file + ' --data-file ' + data_file_name
+pipeline_command_1 = 'python3 ' + os.path.join(bindir, 'run-bolt.py') + ' --config-file ' + yaml_file + ' --data-file ' + json_file_bolt
 
 echo_command_1 = ["echo", "-e", "'%s'" % pipeline_command_1]
 
-qsub_command_1 = ['qsub', '-S', '/bin/bash', '-o', log_dir, '-e', log_dir, '-V','-N', 'run-bolt', '-J', ('1-' + str(len(chunk_list))), '-l', 'select=1:ncpus=1:mem=48gb', '-l', 'walltime=24:00:00']
+qsub_command_1 = ['qsub', '-S', '/bin/bash', '-o', log_dir, '-e', log_dir, '-V','-N', 'run-bolt', '-J', ('1-' + str(len(chunk_list))), '-l', ('select=1:ncpus=' + ncpus + ':mem=48gb'), '-l', 'walltime=36:00:00']
 
 ## because I use shell=TRUE, I can join array to string
 cmd_1 = " ".join(echo_command_1) + " | " + " ".join(qsub_command_1)
@@ -415,6 +418,7 @@ out_1 = out_1.communicate()
 
 job_id_1 = out_1[0].decode('UTF-8').replace('.pbs', '').rstrip()
 print("\nrunning script run-bolt.py as job-id: " + job_id_1)
+
 
 ## == monitoring the qsub processes ==
 
@@ -435,10 +439,10 @@ while True:
     qstat_1_stderr = qstat_1.stderr.decode('ascii')
     qstat_1_returncode = qstat_1.returncode
     
-    print('\njob id:\n' + job_id_1) ## to debug
-    print('\nqstat stdout:\n' + qstat_1_stdout) ## to debug
-    print('\nqstat stderr:\n' + qstat_1_stderr) ## to debug
-    print('\nqstat returncode:\n' + str(qstat_1_returncode))
+    # print('\njob id:\n' + job_id_1) ## to debug
+    # print('\nqstat stdout:\n' + qstat_1_stdout) ## to debug
+    # print('\nqstat stderr:\n' + qstat_1_stderr) ## to debug
+    # print('\nqstat returncode:\n' + str(qstat_1_returncode))
     
     ## checking if the job id is listed in the qstat stdoutput, if
     ## not, wait 5 min until checking again
@@ -473,6 +477,7 @@ while True:
         #     print('\nsomething unexpected')
         #     time.sleep(300)
 
+
 ## == concatenating bolt chunks ==
 
 bolt_tempfile_list = []
@@ -498,13 +503,10 @@ bolt_outfile = os.path.join(bolt_dir, 'model_1.bolt.txt')
 bolt_df.to_csv(bolt_outfile, sep='\t', index=False, quoting=None)
 
 
-
 ## TODO remove temp dir
 
-
-
-## os.remove(tempdir)
-
-## os.remove(binary_file_name)
+if(temp_delete):
+    print('\ndeleting temporary directory ' + tempdir)
+    shutil.rmtree(tempdir)
 
 print('\nfinished pipeline at ' + str(datetime.now()))
