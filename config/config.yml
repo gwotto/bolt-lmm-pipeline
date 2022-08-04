@@ -43,7 +43,6 @@ fam-file: /rds/general/project/medbio-epiukb-archive-2018/live/UKB_pheno/UKBdown
 data-dir: /rds/general/project/uk-biobank-2017/live/reference/sdata_latest
 
 ### software and database versions
-# sresources_28032018: BOLT 2.3, PLINK2 1_Oct_2017
 sresources: /rds/general/project/uk-biobank-2017/live/sresources_latest
 
 ############################################################################
@@ -71,7 +70,7 @@ thr-geno: 0.015
 thr-hwe: 1e-6
 
 ### execution parameters: 2x10^6 snps per chunk
-chunksize: 2000000
+chunksize: 1000000
 ncpus: 4 # per run-bolt job
 
 ## comma-separated list of chromosomes, if commented out the default set of 1..22 will be used
