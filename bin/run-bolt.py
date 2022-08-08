@@ -94,7 +94,7 @@ ldscore_file = cfg['ldscore-file']
 min_maf = cfg['min-maf']
 min_info = cfg['min-info']
 
-remove_file = cfg['remove-file']
+remove_samples_list = cfg['remove-samples-list']
 ##
 
 ## serialised json_list
@@ -197,9 +197,9 @@ else:
 
 
 ## if there is a file with samples to remove
-if(remove_file):
-    print('\nsamples to remove in file: ' + remove_file)
-    remove_string = ' --remove=' + remove_file
+if(remove_samples_list):
+    print('\nsamples to remove in file: ' + remove_samples_list)
+    remove_string = ' --remove=' + remove_samples_list
 else:
     remove_string = ''
     

@@ -15,15 +15,14 @@ tempdir: /rds/general/user/$USER/ephemeral/
 ## True or False. If true, temporary files are deleted at the end of the run
 temp-delete: True
 
-## TODO check why this syntax is used, otherwise simplyfy
-## models. syntax: COV_i=[cat_cov1,...,cat_covn];[quant_cov1,...,quant_covn]
+## Covariates from sample file, syntax: cov-1: "cat_cov1,...,cat_covn;quant_cov1,...,quant_covn"
 cov-1: "Sex,Center;Age,PC1,PC2,PC3,PC4"
 
 ## phenotypes. syntax: PHENO_j=phenotype;[excl_indivs_file]
 pheno-1: "log_Mean_cIMT_Max;"
 
 ## file listing samples to remove, leave empty if not needed
-remove-file:
+remove-samples-list:
 
 min-maf: 0.01
 min-info: 0.1
@@ -70,8 +69,8 @@ thr-geno: 0.015
 thr-hwe: 1e-6
 
 ### execution parameters: 2x10^6 snps per chunk
-chunksize: 1000000
-ncpus: 4 # per run-bolt job
+chunksize: 5000000
+ncpus: 8 # per run-bolt job
 
 ## comma-separated list of chromosomes, if commented out the default set of 1..22 will be used
 chr-list: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22

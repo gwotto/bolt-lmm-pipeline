@@ -1,2 +1,8 @@
 *~
 lib/__pycache__
+
+## ignore everything in doc except md, tex and pdf files
+/doc/*
+!/doc/*.md
+!/doc/*.tex
+!/doc/*.pdf

@@ -400,7 +400,7 @@ pipeline_command_1 = 'python3 ' + os.path.join(bindir, 'run-bolt.py') + ' --conf
 
 echo_command_1 = ["echo", "-e", "'%s'" % pipeline_command_1]
 
-qsub_command_1 = ['qsub', '-S', '/bin/bash', '-o', log_dir, '-e', log_dir, '-V','-N', 'run-bolt', '-J', ('1-' + str(len(chunk_list))), '-l', ('select=1:ncpus=' + ncpus + ':mem=48gb'), '-l', 'walltime=36:00:00']
+qsub_command_1 = ['qsub', '-S', '/bin/bash', '-o', log_dir, '-e', log_dir, '-V','-N', 'run-bolt', '-J', ('1-' + str(len(chunk_list))), '-l', ('select=1:ncpus=' + ncpus + ':mem=48gb'), '-l', 'walltime=72:00:00']
 
 ## because I use shell=TRUE, I can join array to string
 cmd_1 = " ".join(echo_command_1) + " | " + " ".join(qsub_command_1)

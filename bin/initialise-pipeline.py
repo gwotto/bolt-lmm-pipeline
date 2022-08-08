@@ -79,7 +79,8 @@ echo_command = ["echo", "-e", "'%s'" % init_command]
 ## maybe take the qsub variables from config file
 ## qsub_var = cfg['qsub-var'] 
 
-qsub_command = ['qsub', '-S', '/bin/bash', '-o', log_dir, '-e', log_dir, '-V','-N', 'main', '-l', 'select=1:ncpus=1:mem=48gb', '-l', 'walltime=48:00:00']
+## 72 hours is the maximum walltime in the throughput node
+qsub_command = ['qsub', '-S', '/bin/bash', '-o', log_dir, '-e', log_dir, '-V','-N', 'main', '-l', 'select=1:ncpus=1:mem=48gb', '-l', 'walltime=72:00:00']
 
 ## because I use shell=TRUE, I can join array to string
 cmd = " ".join(echo_command) + " | " + " ".join(qsub_command)
