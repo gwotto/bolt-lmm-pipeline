@@ -311,7 +311,7 @@ plink_out = plink_out.communicate()
 
 ## == creating subsets of bgen files in chunk size bins ==
 
-## TODO put in library
+
 ## array of tuples
 ## ((chr1, (chunk1, chunk2)), (chr1, (chunk3, chunk4)), (chr2, (chunk1, chunk2)))
 

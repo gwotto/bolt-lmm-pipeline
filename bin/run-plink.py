@@ -41,13 +41,13 @@ parser = argparse.ArgumentParser(description = "initializing bolt-lmm analysis p
 requiredNamed = parser.add_argument_group('required named arguments')
 
 requiredNamed.add_argument('-c', '--config-file', dest = 'config_file', required = True,
-                    help = 'path to yaml configuration file',
-                    type = lambda x: bolt.is_valid_file(parser, x))
+                           help = 'path to yaml configuration file',
+type = lambda x: bolt.is_valid_file(parser, x))
 
 requiredNamed.add_argument('-f', '--data-file', dest = 'data_file',
-                    required = True,
-                    help = 'path to json data file', metavar = 'FILE',
-                    type = lambda x: bolt.is_valid_file(parser, x))
+                           required = True,
+                           help = 'path to json data file', metavar = 'FILE',
+                           type = lambda x: bolt.is_valid_file(parser, x))
 
 ## optional arguments
 

@@ -43,13 +43,13 @@ parser = argparse.ArgumentParser(description = "initializing bolt-lmm analysis p
 requiredNamed = parser.add_argument_group('required named arguments')
 
 requiredNamed.add_argument('-c', '--config-file', dest = 'config_file', required = True,
-                    help = 'path to yaml configuration file',
-                    type = lambda x: bolt.is_valid_file(parser, x))
+                           help = 'path to yaml configuration file',
+                           type = lambda x: bolt.is_valid_file(parser, x))
 
 requiredNamed.add_argument('-f', '--data-file', dest = 'data_file',
-                    required = True,
-                    help = 'path to json data file', metavar = 'FILE',
-                    type = lambda x: bolt.is_valid_file(parser, x))
+                           required = True,
+                           help = 'path to json data file', metavar = 'FILE',
+                           type = lambda x: bolt.is_valid_file(parser, x))
 
 ## optional arguments
 
@@ -171,7 +171,7 @@ stats_file_bgen_snps = (os.path.join(bolt_tempdir, (imp_base + str(chr) + '_' + 
                                                     '-' + interval[1] + '.model_1.bolt')))
 
 # phenotypes
-pheno_col = pheno_1.split(';')[0].split(',')[0]
+pheno_col = pheno_1.split(',')[0]
 print('\nphenotype: ' + pheno_col)
 
 # categorial covariates
@@ -194,7 +194,11 @@ if(qcovar[0] != ''):
 else:
     qcovar_string = ''
 
-
+if((ccovar[0] != '') or (ccovar[0] != '')):
+    print('\ncovariates in file: ' + pheno_file)
+    covar_file_string = ' --covarFile=' + pheno_file
+else:
+    covar_file_string = ''
 
 ## if there is a file with samples to remove
 if(remove_samples_list):
@@ -223,7 +227,7 @@ bolt_c = ('bolt ' +
           ' --bgenMinINFO=' + str(min_info) +
           ' --statsFile=' + stats_file +
           ' --statsFileBgenSnps=' + stats_file_bgen_snps +
-          ' --covarFile=' + pheno_file +
+          covar_file_string +
           ccovar_string +
           qcovar_string +
           remove_string
