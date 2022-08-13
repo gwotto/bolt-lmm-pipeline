@@ -7,13 +7,20 @@ import re
 import subprocess
 import sys
 import glob
+import time
 
-def __version__():
-    version = 'v0.0.1'
+def __version__() -> str:
+
+    """ Print the pipeline version """
+
+    version = 'v0.0.2'
     return(version)
 
 ## use argparse to parse input options
 def is_valid_file(parser, arg):
+    
+    """ Returns an error if file does not exist """
+    
     if not os.path.exists(arg):
         parser.error("The file %s does not exist!" % arg)
     else:
@@ -22,14 +29,24 @@ def is_valid_file(parser, arg):
 
 
 
+def monitor_qsub(job_id: str) -> None:
+    """
 
-## == monitoring the qsub processes ==
+    Using qstat to monitor a process started on the queue in order to
+    wait until all of them are finished.
 
-## using qstat to monitor processes running run-bolt.py on the queue
-## in order to wait until all of them are finished. TODO: put this
-## into a function
+    Args:
+    job_id (str): The process ID of the (array) job.
 
-def monitor_qsub(job_id):
+    """
+
+    qstat = subprocess.run(['qstat'], capture_output=True)
+    qstat_stdout = qstat.stdout.decode('ascii')
+    print('\njob ' + job_id + ' in the queue:') 
+    print(qstat_stdout)
+    time.sleep(300)
+
+    
     while True:
         ## subprocess.run is synchronous, waits until it finishes and
         ## returns a CompletedProcess object
@@ -58,14 +75,16 @@ def monitor_qsub(job_id):
         
         else:
 
-            ## if something unexpected happened and the return code of the qstat process is not 0, try again in 5 minutes
+            ## if something unexpected happened and the return code of
+            ## the qstat process is not 0, try again in 5 minutes
             if(qstat_returncode != 0):
                 print('\nqstat returncode:\n' + str(qstat_returncode))
                 print('\nsomething unexpected')
                 time.sleep(300)
             else:
-                print('\nqstat stdout:\n' + qstat_stdout)
-                print('\njob ' + job_id + ' has finished.') 
+                print('\njob ' + job_id + ' has exited the queue:') 
+                print(qstat_stdout)
+
                 break
 
     # ## check if qstat stderr states that the process is unknown
@@ -87,10 +106,26 @@ def monitor_qsub(job_id):
 
 
 
-## snp chunks, array of tuples
-## ((chr1, (chunk1, chunk2)), (chr1, (chunk3, chunk4)), (chr2, (chunk1, chunk2)))
 
-def snp_chunks(snp_array, chunksize):
+def snp_chunks(snp_array: list, chromosome: str, chunksize: int) -> list:
+
+    """
+
+    Args:
+    snp_array (list): A list of SNP locations
+    chr (str): The chromosome location of the SNPS
+    chunksize (int): The number of SNPs in one chunk
+
+    Returns:
+    A list of tuples with chromosome chunks, i.e. chromosome,
+    first and last position, e.g. 
+
+    [('chr3', (727, 648)), ('chr3', (65, 598)), ('chr3', (671, 735))
+
+    Raises:
+
+    
+    """
 
     chunk_list = []
     
@@ -106,8 +141,6 @@ def snp_chunks(snp_array, chunksize):
 
     ## print('number of chunks: ' + str(nchunks))
 
-    ## is the position of the first snp be the right begin of the range?
-
     ## tuple of boundaries
     limit_lower_idx = 0
     limit_upper_idx = chunksize -1
@@ -121,7 +154,7 @@ def snp_chunks(snp_array, chunksize):
 
     ## limits of chunks as an array of tuples. array because it needs
     ## to be appended
-    chunk_list.append((chr, (limit_lower_pos, limit_upper_pos)))
+    chunk_list.append((chromosome, (limit_lower_pos, limit_upper_pos)))
 
     ## while the upper limit is position is not the last snp
     while limit_upper_idx < (nsnps - 1):
@@ -133,7 +166,9 @@ def snp_chunks(snp_array, chunksize):
         
         if limit_upper_idx < (nsnps - 1):
             limit_upper_pos = snp_array[limit_upper_idx]
-            chunk_list.append((chr, (limit_lower_pos, limit_upper_pos)))
+            chunk_list.append((chromosome, (limit_lower_pos, limit_upper_pos)))
         else:
             limit_upper_pos = snp_array[-1]
-            chunk_list.append((chr, (limit_lower_pos, limit_upper_pos)))
+            chunk_list.append((chromosome, (limit_lower_pos, limit_upper_pos)))
+
+    return(chunk_list)

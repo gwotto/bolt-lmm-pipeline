@@ -9,6 +9,7 @@ import uuid
 import json
 import re
 import shutil
+import shlex
 import pandas as pd
 from datetime import datetime
 from pathlib import Path
@@ -94,8 +95,6 @@ temp_delete = cfg['temp-delete']
 chunksize = cfg['chunksize']
 ncpus = str(cfg['ncpus'])
 
-## print(sample_file)
-
 
 ## == modules ==
 
@@ -178,7 +177,6 @@ if n_chr != n_gen_base:
     sys.exit('number of chromosomes ' + n_chr +  ' and number of basenames ' + n_gen_base + ' do not match.')
 
 
-
 ## == serialising data for run-plink.py ==
 
 json_file_plink = os.path.join(tempdir, ('data_file_' + uuid.uuid4().hex + '.json'))
@@ -197,15 +195,14 @@ with open(json_file_plink, "w" ) as fh:
     
 pipeline_command = 'python3 ' + os.path.join(bindir, 'run-plink.py') + ' --config-file ' + yaml_file + ' --data-file ' + json_file_plink
 
-echo_command = ["echo", "-e", "'%s'" % pipeline_command]
+echo_command = 'echo -e "%s"' % pipeline_command
 
 ## maybe take the qsub variables from config file
 ## qsub_var = cfg['qsub-var'] 
 
-qsub_command = ['qsub', '-S', '/bin/bash', '-o', log_dir, '-e', log_dir, '-V','-N', 'run-plink', '-J', ('1-' + str(n_gen_base)), '-l', 'select=1:ncpus=1:mem=16gb', '-l', 'walltime=04:00:00']
+qsub_command = 'qsub  -S /bin/bash -o ' + log_dir + ' -e ' + log_dir + ' -V -N run-plink -J ' +  ('1-' + str(n_gen_base)) + ' -lselect=1:ncpus=1:mem=16gb -l walltime=04:00:00'
 
-## because I use shell=TRUE, I can join array to string
-cmd = " ".join(echo_command) + " | " + " ".join(qsub_command)
+cmd =  echo_command + " | " + qsub_command
 
 print('\nrunning run-plink.py on the pbs queue')
 
@@ -215,73 +212,20 @@ print('\nqsub command: ' + str(qsub_command))
 
 print('\ncommand: ' + cmd)
 
-## TODO: maybe better use subprocess.run
-out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-out = out.communicate()
+p1 = subprocess.Popen(shlex.split(echo_command), stdout=subprocess.PIPE)
+p2 = subprocess.Popen(shlex.split(qsub_command), stdin=p1.stdout, stdout=subprocess.PIPE)
+## Allow p1 to receive a SIGPIPE if p2 exits
+p1.stdout.close()
 
-job_id = out[0].decode('UTF-8').replace('.pbs', '').rstrip()
-print("\nrunning script run-plink.py as job-id: " + job_id + 'test')
+job_id = p2.communicate()[0].decode('UTF-8').replace('.pbs', '').rstrip()
+
+print("\nrunning script run-plink.py as job-id: " + job_id)
 
 
 ## == monitoring the qsub processes ==
 
-## using qstat to monitor processes running run-bolt.py on the queue
-## in order to wait until all of them are finished. TODO: put this
-## into a function
 
-while True:
-    ## subprocess.run is synchronous, waits until it finishes and
-    ## returns a CompletedProcess object
-
-    ## would prefer to use qstat with job id but that does not seem to
-    ## work (qstat_stdout empty). Does not seem to find the process
-
-    ## qstat = subprocess.run(['qstat', job_id], capture_output=True)
-
-    qstat = subprocess.run(['qstat'], capture_output=True)
-    qstat_args = qstat.args
-    qstat_stdout = qstat.stdout.decode('ascii')
-    qstat_stderr = qstat.stderr.decode('ascii')
-    qstat_returncode = qstat.returncode
-    
-    # print('\njob id:\n' + job_id) ## to debug
-    # print('\nqstat stdout:\n' + qstat_stdout) ## to debug
-    # print('\nqstat stderr:\n' + qstat_stderr) ## to debug
-    # print('\nqstat returncode:\n' + str(qstat_returncode)) ## to debug
-
-    
-    ## checking if the job id is listed in the qstat stdoutput, if
-    ## not, wait 5 min until checking again
-    if(job_id in qstat_stdout):
-        time.sleep(300)
-        
-    else:
-
-        ## if something unexpected happened and the return code of the qstat process is not 0, try again in 5 minutes
-        if(qstat_returncode != 0):
-            print('\nqstat returncode:\n' + str(qstat_returncode))
-            print('\nsomething unexpected')
-            time.sleep(300)
-        else:
-            print('\nqstat stdout:\n' + qstat_stdout)
-            print('\njob ' + job_id + ' has finished.') 
-            break
-
-        # ## check if qstat stderr states that the process is unknown
-        # ## (i.e. finished). If so, break out of the loop. escape
-        # ## special characters in pattern.
-        # qstat_stderr_pattern = r'.*Unknown.*' + re.escape(job_id)
-        # ## print('stderr search pattern: ' + qstat_stderr_pattern) ## to debug
-        
-        # if(re.match(qstat_stderr_pattern, qstat_stderr)):
-        #     print('\nqstat stderr:\n' + qstat_stderr)
-        #     print('task ' + job_id + ' finished')
-        #     break
-        ## if something unexpected happens, try again in 5 minutes
-        # else:
-        #     print('\nsomething unexpected')
-        #     time.sleep(300)
-
+bolt.monitor_qsub(job_id)
 
 
 ## == merging core SNP sets ==
@@ -300,20 +244,19 @@ ch.close()
 
 coreset_path = os.path.join(plink_dir, 'coreset')
 
-plink_command = 'plink --merge-list ' + coreset_list_file + ' --make-bed --out ' + coreset_path
+plink_cmd = 'plink --merge-list ' + coreset_list_file + ' --make-bed --out ' + coreset_path
 
-print('\nplink commamd: ' + plink_command)
+print('\nplink commamd: ' + plink_cmd)
 
-plink_out = subprocess.Popen(plink_command, shell=True, stdout=subprocess.PIPE)
-plink_out = plink_out.communicate()
+plink_out = subprocess.run(shlex.split(plink_cmd), capture_output = True)
+
+## don't need it right now
+## plink_out = plink_out.stdout.decode('UTF-8')
 
 
 
 ## == creating subsets of bgen files in chunk size bins ==
 
-
-## array of tuples
-## ((chr1, (chunk1, chunk2)), (chr1, (chunk3, chunk4)), (chr2, (chunk1, chunk2)))
 
 chunk_list = []
 
@@ -329,52 +272,16 @@ for idx, chr in enumerate(chr_list):
 
     ## only need snp position, i.e. 4th column
     snp_array = list(map(lambda snp: snp.split('\t')[3], snp_array))
+    
+    ## list of tuples
+    ## ((chr1, (chunk1, chunk2)), (chr1, (chunk3, chunk4)), (chr2, (chunk1, chunk2)))
 
-    nsnps = len(snp_array)
+    chr_chunks = bolt.snp_chunks(snp_array, chr, chunksize)
 
-    ## print('number of snps: ' + str(nsnps))
+    chunk_list.extend(chr_chunks)
 
-    # print(snp_array[0])
-    # print(snp_array[-1])
 
-    ## ceiling division (sign inverted floor division) to get number of chunks
-    nchunks = -1 * (-nsnps // chunksize)
-
-    ## print('number of chunks: ' + str(nchunks))
-
-    ## is the position of the first snp be the right begin of the range?
-
-    ## tuple of boundaries
-    limit_lower_idx = 0
-    limit_upper_idx = chunksize -1
-
-    ## limits of chunks as an array of tuples
-    limit_lower_pos = snp_array[limit_lower_idx]
-
-    if limit_upper_idx < (nsnps - 1):
-        limit_upper_pos = snp_array[limit_upper_idx]
-    else:
-        limit_upper_pos = snp_array[-1]
-
-    ## array of tuples. array because it needs to be appended
-    chunk_list.append((chr, (limit_lower_pos, limit_upper_pos)))
-
-    ## while the upper limit is position is not the last snp
-    while limit_upper_idx < (nsnps - 1):
-
-        limit_lower_idx = limit_upper_idx + 1
-        limit_upper_idx = limit_upper_idx + chunksize
-
-        limit_lower_pos = snp_array[limit_lower_idx]
-        
-        if limit_upper_idx < (nsnps - 1):
-            limit_upper_pos = snp_array[limit_upper_idx]
-            chunk_list.append((chr, (limit_lower_pos, limit_upper_pos)))
-        else:
-            limit_upper_pos = snp_array[-1]
-            chunk_list.append((chr, (limit_lower_pos, limit_upper_pos)))
-        
-## print('\nlist of chunks:\n', chunk_list)
+print('\nlist of chunks:\n', chunk_list)
 
 
 ## == serialising data for run-bolt.py ==
@@ -398,12 +305,11 @@ with open(json_file_bolt, "w" ) as fh:
 
 pipeline_command_1 = 'python3 ' + os.path.join(bindir, 'run-bolt.py') + ' --config-file ' + yaml_file + ' --data-file ' + json_file_bolt
 
-echo_command_1 = ["echo", "-e", "'%s'" % pipeline_command_1]
+echo_command_1 = 'echo -e "%s"' % pipeline_command_1
 
-qsub_command_1 = ['qsub', '-S', '/bin/bash', '-o', log_dir, '-e', log_dir, '-V','-N', 'run-bolt', '-J', ('1-' + str(len(chunk_list))), '-l', ('select=1:ncpus=' + ncpus + ':mem=48gb'), '-l', 'walltime=72:00:00']
+qsub_command_1 = 'qsub -S /bin/bash -o ' + log_dir + ' -e ' + log_dir + ' -V -N run-bolt -J ' + ('1-' + str(len(chunk_list))) + ' -lselect=1:ncpus=' + ncpus + ':mem=48gb' + ' -lwalltime=72:00:00'
 
-## because I use shell=TRUE, I can join array to string
-cmd_1 = " ".join(echo_command_1) + " | " + " ".join(qsub_command_1)
+cmd_1 = echo_command_1 + " | " + qsub_command_1
 
 print('\nrunning run-bolt.py on the pbs queue')
 
@@ -413,72 +319,25 @@ print('\nqsub command: ' + str(qsub_command_1))
 
 print('\ncommand: ' + cmd_1)
 
-out_1 = subprocess.Popen(cmd_1, shell=True, stdout=subprocess.PIPE)
-out_1 = out_1.communicate()
+p1_1 = subprocess.Popen(shlex.split(echo_command_1), stdout=subprocess.PIPE)
+p2_1 = subprocess.Popen(shlex.split(qsub_command_1), stdin=p1_1.stdout, stdout=subprocess.PIPE)
+## Allow p1 to receive a SIGPIPE if p2 exits
+p1_1.stdout.close()
 
-job_id_1 = out_1[0].decode('UTF-8').replace('.pbs', '').rstrip()
+job_id_1 = p2_1.communicate()[0].decode('UTF-8').replace('.pbs', '').rstrip()
+
 print("\nrunning script run-bolt.py as job-id: " + job_id_1)
 
 
 ## == monitoring the qsub processes ==
 
-## using qstat to monitor processes running run-bolt.py on the queue
-## in order to wait until all of them are finished. TODO: put this
-## into a function
-
-while True:
-    ## subprocess.run is synchronous, waits until it finishes and
-    ## returns a CompletedProcess object
-    
-    ## would prefer to use qstat with job id but that does not seem to
-    ## work (qstat_stdout empty). Does not seem to find the process.
-    qstat_1 = subprocess.run(['qstat'], capture_output=True)
-    ## qstat_1 = subprocess.run(['qstat', job_id_1], capture_output=True)
-
-    qstat_1_stdout = qstat_1.stdout.decode('ascii')
-    qstat_1_stderr = qstat_1.stderr.decode('ascii')
-    qstat_1_returncode = qstat_1.returncode
-    
-    # print('\njob id:\n' + job_id_1) ## to debug
-    # print('\nqstat stdout:\n' + qstat_1_stdout) ## to debug
-    # print('\nqstat stderr:\n' + qstat_1_stderr) ## to debug
-    # print('\nqstat returncode:\n' + str(qstat_1_returncode))
-    
-    ## checking if the job id is listed in the qstat stdoutput, if
-    ## not, wait 5 min until checking again
-    if(job_id_1 in qstat_1_stdout):
-        ## print('task ' + job_id_1 + ' in queue')
-        time.sleep(300)
-        
-    else:
-
-        ## if something unexpected happened and the return code of the qstat process is not 0, try again in 5 minutes
-        if(qstat_1_returncode != 0):
-            print('\nqstat returncode:\n' + str(qstat_1_returncode))
-            print('\nsomething unexpected')
-            time.sleep(300)
-        else:
-            print('\nqstat stdout:\n' + qstat_1_stdout)
-            print('\njob ' + job_id_1 + ' has finished.') 
-            break
-
-        # ## check if qstat stderr states that the process is unknown
-        # ## (i.e. finished). If so, break out of the loop. escape
-        # ## special characters in pattern
-        # qstat_1_stderr_pattern = r'.*Unknown.*' + re.escape(job_id_1)
-        # ## print('stderr search pattern: ' + qstat_stderr_pattern) ## to debug
-
-        # if(re.match(qstat_1_stderr_pattern, qstat_1_stderr)):
-        #     print('\nqstat stderr:\n' + qstat_1_stderr)
-        #     print('task ' + job_id_1 + ' finished')
-        break
-        ## if something unexpected happens, try again in 5 minutes
-        # else:
-        #     print('\nsomething unexpected')
-        #     time.sleep(300)
-
+bolt.monitor_qsub(job_id_1)
 
 ## == concatenating bolt chunks ==
+
+bolt_outfile = os.path.join(bolt_dir, 'model_1.bolt.txt')
+
+print('\nconcatenating bolt-lmm output chunks and writing to file ' + bolt_outfile)
 
 bolt_tempfile_list = []
 
@@ -496,14 +355,11 @@ for chunk in chunk_list:
 
 ## print(bolt_tempfile_list)
 
-bolt_df = pd.concat((pd.read_csv(f, sep = '\t', dtype={'CHR': 'str', 'BP': 'str', 'GENPOS' : 'str', 'CHISQ_BOLT_LMM_INF' : 'str'}) for f in bolt_tempfile_list), ignore_index=True)
 
-bolt_outfile = os.path.join(bolt_dir, 'model_1.bolt.txt')
+bolt_df = pd.concat((pd.read_csv(f, sep = '\t', dtype={'CHR': 'str', 'BP': 'str', 'GENPOS' : 'str', 'CHISQ_BOLT_LMM_INF' : 'str'}) for f in bolt_tempfile_list), ignore_index=True)
 
 bolt_df.to_csv(bolt_outfile, sep='\t', index=False, quoting=None)
 
-
-## TODO remove temp dir
 
 if(temp_delete):
     print('\ndeleting temporary directory ' + tempdir)

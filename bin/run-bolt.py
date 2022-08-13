@@ -95,14 +95,13 @@ min_maf = cfg['min-maf']
 min_info = cfg['min-info']
 
 remove_samples_list = cfg['remove-samples-list']
-##
+
 
 ## serialised json_list
 serial_list = json.load(open(data_file, 'rb'))
 
 
 ## == file paths ==
-
 plink_dir = serial_list['plink-dir']
 bolt_dir = serial_list['bolt-dir']
 bolt_tempdir = serial_list['bolt-tempdir']
@@ -130,12 +129,9 @@ print('base index: ' + str(base_index))
 ## == generating bgenfile for range ==
 
 chunk = serial_list['chunk-list'][base_index]
-
 print('chunk: ' + str(chunk))
 
 chr = chunk[0]
-print('chr: ' + chr)
-
 interval = chunk[1]
 
 bgen_file = os.path.join(data_dir, (imp_base + str(chr) + '.bgen'))

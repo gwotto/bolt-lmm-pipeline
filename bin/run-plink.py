@@ -35,8 +35,8 @@ parser = argparse.ArgumentParser(description = "initializing bolt-lmm analysis p
 
 ## required arguments
 
-## this is a trick to list the following arguments as required
-## arguments instead of optional arguments, see
+## list the following arguments as required arguments instead of
+## optional arguments, see
 ## https://stackoverflow.com/questions/24180527/argparse-required-arguments-listed-under-optional-arguments
 requiredNamed = parser.add_argument_group('required named arguments')
 
@@ -167,9 +167,4 @@ print(plink_c + '\n')
 ## not rather subprocess.run ?
 os.system(plink_c)
 
-## 2022-07-28 fond this not uncommented. what did this do here?
-# out = subprocess.Popen(plink_c, shell=True, stdout=subprocess.PIPE)
-# out = out.communicate()
-
 print('\nfinished running plink at: ' + str(datetime.now()))
-

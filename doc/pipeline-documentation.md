@@ -122,7 +122,9 @@ python /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/bin/
    remove-samples-list in a new run.
 
 ## Version history
-  * 0.01 (2022-07-28)
+  * v0.0.2 (2022-08-12)
+	Code organised in functions, documentation, updated config file, subprocesses
+  * v0.0.1 (2022-07-28)
 	First version running on hpc cluster
 
 ## TODO

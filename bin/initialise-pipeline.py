@@ -6,6 +6,7 @@ import sys
 import time
 import uuid
 import json
+import shlex
 from datetime import datetime
 from pathlib import Path
 
@@ -21,8 +22,9 @@ version = bolt.__version__()
 ## parse import arguments
 parser = argparse.ArgumentParser(description = "initialising bolt-lmm analysis pipeline")
 
-## this is a trick to list the following arguments as required
-## arguments instead of optional arguments, see
+
+## list the following arguments as required arguments instead of
+## optional arguments, see
 ## https://stackoverflow.com/questions/24180527/argparse-required-arguments-listed-under-optional-arguments
 requiredNamed = parser.add_argument_group('required named arguments')
 
@@ -74,16 +76,18 @@ Path(log_dir).mkdir(parents=True, exist_ok=True)
 
 init_command = 'python3 ' + os.path.join(bindir, 'main.py') + ' --config-file ' + yaml_file
 
-echo_command = ["echo", "-e", "'%s'" % init_command]
+echo_command = 'echo -e "%s"' % init_command
 
 ## maybe take the qsub variables from config file
 ## qsub_var = cfg['qsub-var'] 
 
 ## 72 hours is the maximum walltime in the throughput node
-qsub_command = ['qsub', '-S', '/bin/bash', '-o', log_dir, '-e', log_dir, '-V','-N', 'main', '-l', 'select=1:ncpus=1:mem=48gb', '-l', 'walltime=72:00:00']
 
-## because I use shell=TRUE, I can join array to string
-cmd = " ".join(echo_command) + " | " + " ".join(qsub_command)
+qsub_command = 'qsub -S /bin/bash -o ' + log_dir + ' -e ' + log_dir + ' -V -N main -lselect=1:ncpus=1:mem=48gb -lwalltime=72:00:00'
+
+## I am not using shell=True, so need to use shlex to parse the string
+## for subprocess.Popen
+cmd = echo_command + " | " + qsub_command
 
 print('\nrunning main.py on the pbs queue')
 
@@ -93,10 +97,12 @@ print('\nqsub command: ' + str(qsub_command))
 
 print('\ncommand: ' + cmd)
 
-out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
-out = out.communicate()
+p1 = subprocess.Popen(shlex.split(echo_command), stdout=subprocess.PIPE)
+p2 = subprocess.Popen(shlex.split(qsub_command), stdin=p1.stdout, stdout=subprocess.PIPE)
+## Allow p1 to receive a SIGPIPE if p2 exits
+p1.stdout.close()
 
-job_id = out[0].decode('UTF-8').replace('.pbs', '').rstrip()
+job_id = p2.communicate()[0].decode('UTF-8').replace('.pbs', '').rstrip()
 
 print('\nbolt-lmm pipeline initialised with job-id: ' + job_id)
 
