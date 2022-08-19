@@ -58,7 +58,8 @@ end of the pipeline run.
 
 #### Covariate syntax
 
-To use columns in the phenotype file in the model, the config file uses the following syntax:
+To use columns in the phenotype file as covariates in the model, the
+config file has the following syntax:
 
 	cov-1: "cat_cov1,...,cat_covn;quant_cov1,...,quant_covn"
 
@@ -128,6 +129,7 @@ python /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/bin/
 	First version running on hpc cluster
 
 ## TODO
+  * parantheses on covariates in config file?
   * variant annotation
   * multiple models in parallel
   * bolt core SNPs concatenation?
@@ -136,5 +138,5 @@ python /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/bin/
   * check queues (medbio?)
   * check warning: Overlap of sample file and fam file < 50%
   * dedicated conda environment?
-  * accessible location
+
 
