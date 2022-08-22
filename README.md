@@ -3,6 +3,7 @@
 
 ## Introduction
 
+
 This pipeline runs bolt-lmm (Loh et al, Nat Genet 2015; Loh et al. Nat
 Genet 2018) with UK biobank data on the Imperial hpc cluster. It
 performs steps to format data, divide them into chunks and run the
