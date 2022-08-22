@@ -133,6 +133,7 @@ python /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/bin/
 The output of the pipeline is a text file  *.bolt the following columns:
 
 | SNP | CHR | BP | GENPOS | ALLELE1 | ALLELE0 | A1FREQ | INFO | CHISQ\_LINREG | P\_LINREG | BETA | SE | CHISQ\_BOLT\_LMM\_INF | P\_BOLT\_LMM\_INF | CHISQ\_BOLT\_LMM | P_BOLT_LMM |
+----------------------------------------------------------
 
 
 
