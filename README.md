@@ -7,16 +7,16 @@
 This pipeline runs bolt-lmm (Loh et al, Nat Genet 2015; Loh et al. Nat
 Genet 2018;
 https://alkesgroup.broadinstitute.org/BOLT-LMM/BOLT-LMM_manual.html)
-with UK biobank data on the Imperial hpc cluster. It performs steps to
-format data, divide them into chunks and run the chunks through
-bolt-lmm in parallel (see ![bolt-lmm
-pipeline](./doc/fig-bolt-pipeline.pdf){width=65%} )
+with UK biobank data on the Imperial hpc cluster. It formats data,
+divides them into chunks and runs the chunks through bolt-lmm in
+parallel (see ![bolt-lmm
+pipeline](./doc/fig-bolt-pipeline.pdf))
 
 
 
 ## Prerequisites
 
-The pipeline needs software and python packages installed and in the
+The pipeline needs software and python packages installed in the
 environment path. On the Imperial hpc cluster, this is achieved by two
 methods:
 
@@ -26,7 +26,7 @@ methods:
 2. The Conda enironment, providing python, python packages and other
    software defined by the user. For instructions on how to use a
    conda environment see
-   https://www.imperial.ac.uk/admin-services/ict/self-service/research-support/rcs/support/applications/python/
+   https://www.imperial.ac.uk/admin-services/ict/self-service/research-support/rcs/support/applications/python/.
    Before using the conda environment for this pipeline for the first
    time, you need to set it up and install some python modules.
 
