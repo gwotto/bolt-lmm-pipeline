@@ -46,9 +46,9 @@ A pipeline run is configured by the yaml-format file config.yml. An
 example configuration file is located in
 /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/config/config.yml. Copy
 this file to a convenient location and edit the configuration to your
-needs. For pipeline tests, the phenotype file in
+needs. For pipeline tests, the phenotype file
 /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/data/sample.phenotype.txt
-can be used. At least the output directory needs to be adjusted.
+can be used, but At least the output directory needs to be adjusted.
 
 #### Data files
 
@@ -67,21 +67,21 @@ can be used. At least the output directory needs to be adjusted.
    /rds/general/project/uk-biobank-2017/live/reference/sdata_latest/
    by default.
 5. File listing missing samples to remove (bolt --remove argument),
-   e.g. if samples in fam-file are missing in
-   sample-file. Tab-delimited text file, no header, FID IID must be
-   first two columns. If this is the case and no remove-file is
-   provided, bolt-lmm produces a file listing the samples to remove
-   and exits with an error. The generated file can be used as
-   remove-samples-list in a new run.
-
+   e.g. samples in the fam-file that are missing in the
+   sample-file. This is a header-less tab-delimited text file, FID IID
+   must be the first two columns. If samples are missing and no
+   remove-file is provided, bolt-lmm produces a file listing the
+   samples to remove and exits with an error. The generated file can
+   subsequently be used as the missing samples list.
+   
 #### Covariates
 
 To use columns in the phenotype file as covariates in the model, the
-config file has the following syntax:
+config file has the following form:
 
 	cov-1: cat_cov1,...,cat_covn;quant_cov1,...,quant_covn
 
-i.e.  comma-separated list of categorial covariates, followed by a
+i.e. a comma-separated list of categorial covariates, followed by a
 semicolon, followed by a comma-separated list of quantitative
 covariates. For example:
 
@@ -130,12 +130,12 @@ python /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/bin/
 
 ## Output files
 
-The output of the pipeline is a text file  *.bolt the following columns:
+The output of the pipeline is a text file  *.bolt with the following columns:
 
 | SNP | CHR | BP | GENPOS | ALLELE1 | ALLELE0 | A1FREQ | INFO | CHISQ\_LINREG | P\_LINREG | BETA | SE | CHISQ\_BOLT\_LMM\_INF | P\_BOLT\_LMM\_INF | CHISQ\_BOLT\_LMM | P_BOLT_LMM |
 
 Note that the last two columns (CHISQ\_BOLT\_LMM | P_BOLT_LMM) can be
-missing. The pipeline runs with option `--lmm`, according to the
+missing. By default, the pipeline runs with option `--lmm`, according to the
 bolt-lmm manual:
 
 > Performs default BOLT-LMM analysis, which consists of (1a)
