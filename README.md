@@ -5,14 +5,16 @@
 
 
 This pipeline runs bolt-lmm (Loh et al, Nat Genet 2015; Loh et al. Nat
-Genet 2018) with UK biobank data on the Imperial hpc cluster. It
-performs steps to format data, divide them into chunks and run the
-chunks through bolt-lmm in parallel (see ![bolt-lmm
-pipeline](./fig-bolt-pipeline.pdf){width=65%} )
+Genet 2018;
+https://alkesgroup.broadinstitute.org/BOLT-LMM/BOLT-LMM_manual.html)
+with UK biobank data on the Imperial hpc cluster. It performs steps to
+format data, divide them into chunks and run the chunks through
+bolt-lmm in parallel (see ![bolt-lmm
+pipeline](./doc/fig-bolt-pipeline.pdf){width=65%} )
 
 
 
-## Environment
+## Prerequisites
 
 The pipeline needs software and python packages installed and in the
 environment path. On the Imperial hpc cluster, this is achieved by two
@@ -36,7 +38,9 @@ conda install pyyaml
 ```
 
 
-## Configuration
+## Running the pipeline
+
+### Configuration
 
 A pipeline run is configured by the yaml-format file config.yml. An
 example configuration file is located in
@@ -46,60 +50,7 @@ needs. For pipeline tests, the phenotype file in
 /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/data/sample.phenotype.txt
 can be used. At least the output directory needs to be adjusted.
 
-
-#### Temporary files directory
-
-The program produces temporary files and directories, the location of
-which can be set with the 'tempdir' variable. These files take a lot
-of space, therefore it is recommended to choose a location on the
-ephemeral directory (default is
-/rds/general/user/$USER/ephemeral/). The variable temp-delete
-(True/False) determines if the temporary directory gets deleted at the
-end of the pipeline run.
-
-#### Covariate syntax
-
-To use columns in the phenotype file as covariates in the model, the
-config file has the following syntax:
-
-	cov-1: "cat_cov1,...,cat_covn;quant_cov1,...,quant_covn"
-
-A comma-separated list of categorial covariates, followed by a
-semicolon, followed by a comma-separated list of quantitative
-covariates. For example:
-
-1. Categorial and quantitative covariates:
-
-		cov-1: "Sex,Center;Age,PC1,PC2,PC3,PC4"
-
-2. Quantitative covariates only:
-
-		cov-1: ";age,PC1,PC2,PC3,PC4,PC5,PC6,PC7,PC8,PC9,PC10"
-
-
-## How to run the pipeline
-
-1. Loading the conda environment.
-
-```bash
-module load anaconda3/personal
-```
-
-2. Starting the pipeline
-
-``` bash
-python /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/bin/initialise-pipeline.py --config-file config.yml
-
-```
-
-3. Pipeline help message
-
-``` bash
-python /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/bin/initialise-pipeline.py -h
-
-```
-
-## Data files
+#### Data files
 
 1. Phenotype file, containing phenotypes and covariates, with the
    first line containing column headers and subsequent lines
@@ -122,6 +73,68 @@ python /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/bin/
    provided, bolt-lmm produces a file listing the samples to remove
    and exits with an error. The generated file can be used as
    remove-samples-list in a new run.
+
+#### Covariates
+
+To use columns in the phenotype file as covariates in the model, the
+config file has the following syntax:
+
+	cov-1: cat_cov1,...,cat_covn;quant_cov1,...,quant_covn
+
+i.e.  comma-separated list of categorial covariates, followed by a
+semicolon, followed by a comma-separated list of quantitative
+covariates. For example:
+
+1. Categorial and quantitative covariates:
+
+		cov-1: Sex,Center;Age,PC1,PC2,PC3,PC4
+
+2. Quantitative covariates only:
+
+		cov-1: ;age,PC1,PC2,PC3,PC4,PC5,PC6,PC7,PC8,PC9,PC10
+
+
+#### Temporary files directory
+
+The program produces temporary files and directories, the location of
+which can be set with the 'tempdir' variable. These files take a lot
+of space, therefore it is recommended to choose a location on the
+ephemeral directory (default is
+/rds/general/user/$USER/ephemeral/). The variable temp-delete
+(True/False) determines if the temporary directory gets deleted at the
+end of the pipeline run.
+
+
+
+## Starting the pipeline
+
+1. Loading the conda environment.
+
+```bash
+module load anaconda3/personal
+```
+
+2. Starting the pipeline
+
+``` bash
+python /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/bin/initialise-pipeline.py --config-file config.yml
+
+```
+
+3. Pipeline help message
+
+``` bash
+python /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/bin/initialise-pipeline.py -h
+
+```
+
+## Output files
+
+The output of the pipeline is a text file  *.bolt the following columns:
+
+| SNP | CHR | BP | GENPOS | ALLELE1 | ALLELE0 | A1FREQ | INFO | CHISQ\_LINREG | P\_LINREG | BETA | SE | CHISQ\_BOLT\_LMM\_INF | P\_BOLT\_LMM\_INF | CHISQ\_BOLT\_LMM | P_BOLT_LMM |
+
+
 
 ## Version history
   * v0.0.2 (2022-08-12)
