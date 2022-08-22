@@ -133,23 +133,35 @@ python /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/bin/
 The output of the pipeline is a text file  *.bolt the following columns:
 
 | SNP | CHR | BP | GENPOS | ALLELE1 | ALLELE0 | A1FREQ | INFO | CHISQ\_LINREG | P\_LINREG | BETA | SE | CHISQ\_BOLT\_LMM\_INF | P\_BOLT\_LMM\_INF | CHISQ\_BOLT\_LMM | P_BOLT_LMM |
-----------------------------------------------------------
 
+Note that the last two columns (CHISQ\_BOLT\_LMM | P_BOLT_LMM) can be
+missing. The pipeline runs with option `--lmm`, according to the
+bolt-lmm manual:
 
+> Performs default BOLT-LMM analysis, which consists of (1a)
+> estimating heritability parameters, (1b) computing the BOLT-LMM-inf
+> statistic, (2a) estimating Gaussian mixture parameters, and (2b)
+> computing the BOLT-LMM statistic only if an increase in power is
+> expected. If BOLT-LMM determines based on cross-validation that the
+> non-infinitesimal model is likely to yield no increase in power, the
+> BOLT-LMM (Bayesian) mixed model statistic is not computed.
 
 ## Version history
+
+  * v0.0.3 (2022-08-22)
+	Documentation, config file
+  
   * v0.0.2 (2022-08-12)
 	Code organised in functions, documentation, updated config file, subprocesses
+	
   * v0.0.1 (2022-07-28)
 	First version running on hpc cluster
 
 ## TODO
-  * parantheses on covariates in config file?
+  
   * variant annotation
   * multiple models in parallel
-  * bolt core SNPs concatenation?
   * mail upon job completion
-  * resource allocation, multi-threading
   * check queues (medbio?)
   * check warning: Overlap of sample file and fam file < 50%
   * dedicated conda environment?
