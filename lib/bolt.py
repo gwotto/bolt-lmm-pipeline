@@ -13,7 +13,7 @@ def __version__() -> str:
 
     """ Print the pipeline version """
 
-    version = 'v0.0.2'
+    version = 'v0.0.3'
     return(version)
 
 ## use argparse to parse input options

@@ -17,12 +17,13 @@ tempdir: /rds/general/user/$USER/ephemeral/
 ## True or False. If true, temporary files are deleted at the end of the run
 temp-delete: True
 
-## Covariates from sample file, syntax: cov-1: "cat_cov1,...,cat_covn;quant_cov1,...,quant_covn"
-cov-1: "Sex,Center;Age,PC1,PC2,PC3,PC4"
+## Covariates, categorial and quantitative, from sample file. syntax:
+## cov-1: cat_cov1,...,cat_covn;quant_cov1,...,quant_covn
+cov-1: Sex,Center;Age,PC1,PC2,PC3,PC4
 
-## phenotypes. comma-separated list of phenotypes. currently only
-## working with first phenotype
-pheno-1: "log_Mean_cIMT_Max"
+## comma-separated list of phenotypes. currently only working with
+## first phenotype
+pheno-1: log_Mean_cIMT_Max
 
 ## file listing samples to remove, leave empty if not needed
 remove-samples-list:
