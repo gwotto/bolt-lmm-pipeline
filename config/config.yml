@@ -36,6 +36,7 @@ remove-samples-list:
 sample-file: /rds/general/project/medbio-epiukb-archive-2018/live/UKB_pheno/UKBdownloads/ukb23_imp_chr21_v2_s487406.sample
 fam-file: /rds/general/project/medbio-epiukb-archive-2018/live/UKB_pheno/UKBdownloads/ukb23_cal_chr21_v2_s488374.fam
 
+## directory containing core snp files (.bed and .bim format) and imputed snp files (.bgen format)
 ## fixed 2018 release (v3), points to files in release_12032018
 data-dir: /rds/general/project/uk-biobank-2017/live/reference/sdata_latest
 
@@ -75,8 +76,11 @@ get_betas: no
 
 ## SNPS_TO_KEEP=${SRESOURCES}/annotation/snps_all/all_imp_minus_discordant.snplist
 
-imp-base: ukb_imp_chr
+## prefix of core snp files (.bed and .bim format) in data-dir
 gen-base: ukb_gen_chr
+
+## prefix of imputed snp files (.bgen format) in data-dir
+imp-base: ukb_imp_chr
 
 module-init: /usr/share/Modules/init/python.py 
 

@@ -3,7 +3,6 @@
 
 ## Introduction
 
-
 This pipeline runs bolt-lmm (Loh et al, Nat Genet 2015; Loh et al. Nat
 Genet 2018;
 https://alkesgroup.broadinstitute.org/BOLT-LMM/BOLT-LMM_manual.html)
@@ -12,6 +11,12 @@ divides them into chunks and runs the chunks through bolt-lmm in
 parallel (see ![bolt-lmm
 pipeline](./doc/fig-bolt-pipeline.pdf))
 
+
+The pipeline carries out association testing by running bolt-lmm on
+UKB imputed SNPs using a mixed model built on a subset of hard-called,
+PLINK-format UKB genotypes. Thus, it first performs its model-fitting
+on PLINK-format genotypes and then applies the model to scan any
+provided imputed SNPs.
 
 
 ## Prerequisites
@@ -40,15 +45,16 @@ conda install pyyaml
 
 ## Running the pipeline
 
+
 ### Configuration
 
-A pipeline run is configured by the yaml-format file config.yml. An
+The pipeline run is configured by the yaml-format file config.yml. An
 example configuration file is located in
 /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/config/config.yml. Copy
 this file to a convenient location and edit the configuration to your
 needs. For pipeline tests, the phenotype file
 /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/data/sample.phenotype.txt
-can be used, but At least the output directory needs to be adjusted.
+can be used, but at least the output directory needs to be adjusted.
 
 #### Data files
 
@@ -60,10 +66,12 @@ can be used, but At least the output directory needs to be adjusted.
    individual). Any number of columns may follow. Values of -9 and NA
    are interpreted as missing data. All other values in the column
    should be numeric.
-2. fam file (plink --bfile argument).
+2. fam file.
 3. Sample file (bolt --sampleFile argument).
-4. Genotype file(s) in .bgen format (bolt --bgenFile
-   argument). Currently these are the ukb_imp_chr*.bgen files in
+4. Data directory containing core snp files (in .bed and .bim format)
+   and imputed snp files (in .bgen format). Currently these are
+   ukb_gen_chr\*.bim, ukb_gen_chr\*.bed, and ukb_imp_chr\*.bgen files
+   in
    /rds/general/project/uk-biobank-2017/live/reference/sdata_latest/
    by default.
 5. File listing missing samples to remove (bolt --remove argument),

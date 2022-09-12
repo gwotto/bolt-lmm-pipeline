@@ -125,12 +125,12 @@ print('\ncreating directory: ' + gen_base_tempdir)
 Path(gen_base_tempdir).mkdir(parents=True, exist_ok=True)
 
 input_bim = os.path.join(data_dir, (gen_base + '.bim'))
-output_bim = os.path.join(gen_base_tempdir, (gen_base + '.bim')) 
+temp_bim = os.path.join(gen_base_tempdir, (gen_base + '.bim')) 
 
 input_bed = os.path.join(data_dir, (gen_base + '.bed'))
-output_bed = os.path.join(gen_base_tempdir, (gen_base + '.bed')) 
+temp_bed = os.path.join(gen_base_tempdir, (gen_base + '.bed')) 
 
-output_fam = os.path.join(gen_base_tempdir, (gen_base + '.fam')) 
+temp_fam = os.path.join(gen_base_tempdir, (gen_base + '.fam')) 
 
 plink_path = os.path.join(plink_tempdir, (gen_base + '.coreset'))
 
@@ -139,13 +139,15 @@ gen_base_path = os.path.join(gen_base_tempdir, gen_base)
 
 ## == data files for plink ==
 
-awk_c = "awk 'BEGIN { OFS = \"\t\"} {print $1,$1\"_\"$4\"_\"$5\"_\"$6\"_1\",$3,$4,$5,$6}' " + input_bim + ' > ' + output_bim
-link_c = 'ln -s ' + input_bed + ' ' + output_bed
-copy_c = 'cp ' + fam_file + ' ' + output_fam
+## creating temporary input files for plink filtering and formatting
+## per chromosome, linking the ukb_gen_chr*.bed file, writing a
+## modified ukb_gen_chr*.bim file and copying a (common) fam file to
+## the respective temp-ukb_gen_chr* directory
 
-## links the ukb_gen_chr*.bed file, writes a modified ukb_gen_chr*.bim
-## and copies a (common) fam file to the respective temp-ukb_gen_chr*
-## directory
+awk_c = "awk 'BEGIN { OFS = \"\t\"} {print $1,$1\"_\"$4\"_\"$5\"_\"$6\"_1\",$3,$4,$5,$6}' " + input_bim + ' > ' + temp_bim
+link_c = 'ln -s ' + input_bed + ' ' + temp_bed
+copy_c = 'cp ' + fam_file + ' ' + temp_fam
+
 print("\nprocessing input files")
 print(awk_c + '\n')
 print(link_c + '\n')
@@ -158,7 +160,7 @@ os.system(copy_c)
 
 ## == running plink ==
 
-## creates ukb_gen_chr*.coreset files in temp-plink directory: .bed .bim .fam .log .nosex 
+## creates coreset snp files per chromosome in temp-plink directory: .bed .bim .fam .log .nosex 
 plink_c = 'plink --bfile ' + gen_base_path + ' --keep ' + pheno_file + ' --maf ' + str(thr_maf) + ' --geno ' + str(thr_geno) + ' --hwe ' + (thr_hwe) + ' --make-bed  --out ' + plink_path
 
 print("running plink")

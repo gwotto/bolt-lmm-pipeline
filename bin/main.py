@@ -143,9 +143,11 @@ tempdir = os.path.join(temp_parent, ('tempdir_' +  uuid.uuid4().hex))
 print('\ncreating temporary directory ' + tempdir)
 Path(tempdir).mkdir(parents=True, exist_ok=True)
 
+## temporary directory for the reformatted bim files, bed and fam files per chromosome
 plink_tempdir = os.path.join(tempdir, 'temp-plink')
 Path(plink_tempdir).mkdir(parents=True, exist_ok=True)
 
+## temporary directory for bolt-lmm output per chunk
 bolt_tempdir = os.path.join(tempdir, 'temp-bolt')
 Path(bolt_tempdir).mkdir(parents=True, exist_ok=True)
 
@@ -224,7 +226,6 @@ print("\nrunning script run-plink.py as job-id: " + job_id)
 
 ## == monitoring the qsub processes ==
 
-
 bolt.monitor_qsub(job_id)
 
 
@@ -244,6 +245,7 @@ ch.close()
 
 coreset_path = os.path.join(plink_dir, 'coreset')
 
+## merging the per chromosome core snp files 
 plink_cmd = 'plink --merge-list ' + coreset_list_file + ' --make-bed --out ' + coreset_path
 
 print('\nplink commamd: ' + plink_cmd)
