@@ -136,7 +136,7 @@ python /rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/bin/
 
 ```
 
-## Output files
+## Results
 
 The output of the pipeline is a text file  *.bolt with the following columns:
 
@@ -153,6 +153,20 @@ bolt-lmm manual:
 > expected. If BOLT-LMM determines based on cross-validation that the
 > non-infinitesimal model is likely to yield no increase in power, the
 > BOLT-LMM (Bayesian) mixed model statistic is not computed.
+
+**Warning**
+
+This pipeline has been tested vigorously and so far has proven to
+yield the correct and complete result given the provided input and
+configuration. However, it can not be ruled out that problems on the
+hpc environment can occur, like nodes getting stuck, an unavailable
+file system, lack of storage space etc. For this reason, it is good
+practise to review the log files for possible error messages. It is
+also recommended to make some plausibility tests with the output file,
+e.g. if the numer of variants meets the expectation by counting line
+numbers using the `wc` command, or by checking if all chromosomes are
+represented in the output: `cut -f 2 output.txt | uniq -c`.
+
 
 ## Version history
 
