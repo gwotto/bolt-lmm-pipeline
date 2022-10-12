@@ -45,7 +45,6 @@ conda install pyyaml
 
 ## Running the pipeline
 
-
 ### Configuration
 
 The pipeline run is configured by the yaml-format file config.yml. An
@@ -154,7 +153,8 @@ bolt-lmm manual:
 > non-infinitesimal model is likely to yield no increase in power, the
 > BOLT-LMM (Bayesian) mixed model statistic is not computed.
 
-**Warning**
+
+**Warning:**
 
 This pipeline has been tested vigorously and so far has proven to
 yield the correct and complete result given the provided input and
