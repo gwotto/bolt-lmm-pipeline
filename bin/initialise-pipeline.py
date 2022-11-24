@@ -83,7 +83,7 @@ echo_command = 'echo -e "%s"' % init_command
 
 ## 72 hours is the maximum walltime in the throughput node
 
-qsub_command = 'qsub -S /bin/bash -o ' + log_dir + ' -e ' + log_dir + ' -V -N main -lselect=1:ncpus=1:mem=48gb -lwalltime=72:00:00'
+qsub_command = 'qsub -S /bin/bash -o ' + log_dir + ' -e ' + log_dir + ' -V -N main -lselect=1:ncpus=1:mem=64gb -lwalltime=72:00:00'
 
 ## I am not using shell=True, so need to use shlex to parse the string
 ## for subprocess.Popen

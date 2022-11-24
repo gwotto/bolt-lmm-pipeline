@@ -25,21 +25,48 @@ The pipeline needs software and python packages installed in the
 environment path. On the Imperial hpc cluster, this is achieved by two
 methods:
 
-1. Modules loading installed software into the search path. This is
-   carried out by the pipeline itself. Required modules need to be
-   listed in the configuration file.
-2. The Conda enironment, providing python, python packages and other
-   software defined by the user. For instructions on how to use a
-   conda environment see
-   https://www.imperial.ac.uk/admin-services/ict/self-service/research-support/rcs/support/applications/python/.
-   Before using the conda environment for this pipeline for the first
-   time, you need to set it up and install some python modules.
+1. Environment modules, which load installed software into the search
+   path. This is carried out by the pipeline itself. Required modules
+   need to be listed in the configuration file.
+2. The Conda enironment which provides python, python packages and
+   other software defined by the user. For instructions on how to use
+   a conda environment see
+   https://www.imperial.ac.uk/admin-services/ict/self-service/research-support/rcs/support/applications/python/. When
+   using conda for the first time on the cluster you need to set it
+   up:
 
 ```bash
 module load anaconda3/personal
 anaconda-setup
-conda install pandas
-conda install pyyaml
+```
+
+3. Before running this pipeline for the first time you have to create
+   a Conda environment, called 'bolt', using the configuration file in
+   the config directory.
+
+```bash
+module load anaconda3/personal
+conda env create --file /path/to/config/environment.yml
+```
+
+4. The steps above have to be carried out only once. After that, each
+   time you run the pipline in a new terminal, you have to load conda
+   into your path and activate the `bolt` environment. Before
+   activating the bolt environment, you have to use the command
+   `source activate`, which is probably due to a bug in the conda
+   installation.
+
+```bash
+module load anaconda3/personal
+source activate
+conda activate bolt
+```
+
+5. If the environment.yml file has been modified, e.g. n a newer
+   version of the pipeline, the environment can be updated like this:
+
+```bash
+conda env update --file /path/to/config/environment.yml
 ```
 
 
@@ -119,6 +146,8 @@ end of the pipeline run.
 
 ```bash
 module load anaconda3/personal
+source activate
+conda activate bolt
 ```
 
 2. Starting the pipeline

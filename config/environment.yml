@@ -1,0 +1,6 @@
+name: bolt
+channels:
+- bioconda
+dependencies:
+- pandas
+- pyyaml

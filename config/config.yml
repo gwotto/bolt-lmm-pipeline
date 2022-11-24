@@ -11,7 +11,7 @@ pheno-file:
 ## output directory, to be defined by the user
 outdir: 
 
-## directory for temporary files, by default the user's ephemeral
+## directory for temporary files, e.g. the user's ephemeral directory
 tempdir: /rds/general/user/$USER/ephemeral/
 
 ## True or False. If true, temporary files are deleted at the end of the run
