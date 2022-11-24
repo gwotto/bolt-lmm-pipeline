@@ -199,6 +199,9 @@ represented in the output: `cut -f 2 output.txt | uniq -c`.
 
 ## Version history
 
+  * v0.0.4 (2022-11-24)
+	conda environment
+	
   * v0.0.3 (2022-08-22)
 	Documentation, config file
   
