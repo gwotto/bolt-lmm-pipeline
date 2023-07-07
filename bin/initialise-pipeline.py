@@ -74,6 +74,7 @@ Path(outdir).mkdir(parents=True, exist_ok=True)
 log_dir = os.path.join(outdir, 'logs')
 Path(log_dir).mkdir(parents=True, exist_ok=True)
 
+
 init_command = 'python3 ' + os.path.join(bindir, 'main.py') + ' --config-file ' + yaml_file
 
 echo_command = 'echo -e "%s"' % init_command
