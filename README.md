@@ -8,8 +8,7 @@ Genet 2018;
 https://alkesgroup.broadinstitute.org/BOLT-LMM/BOLT-LMM_manual.html)
 with UK biobank data on the Imperial hpc cluster. It formats data,
 divides them into chunks and runs the chunks through bolt-lmm in
-parallel (see ![bolt-lmm
-pipeline](./doc/fig-bolt-pipeline.pdf))
+parallel (see ![pipeline diagram](./doc/fig-bolt-pipeline.pdf))
 
 
 The pipeline carries out association testing by running bolt-lmm on
@@ -51,18 +50,14 @@ conda env create --file /path/to/config/environment.yml
 
 4. The steps above have to be carried out only once. After that, each
    time you run the pipline in a new terminal, you have to load conda
-   into your path and activate the `bolt` environment. Before
-   activating the bolt environment, you have to use the command
-   `source activate`, which is probably due to a bug in the conda
-   installation.
+   into your path and activate the `bolt` environment.
 
 ```bash
 module load anaconda3/personal
-source activate
-conda activate bolt
+source activate bolt
 ```
 
-5. If the environment.yml file has been modified, e.g. n a newer
+5. If the environment.yml file has been modified, e.g. in a newer
    version of the pipeline, the environment can be updated like this:
 
 ```bash

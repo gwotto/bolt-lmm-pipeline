@@ -119,22 +119,23 @@ tempdir = serial_list['tempdir']
 
 plink_tempdir = serial_list['plink-tempdir']
 
-gen_base_tempdir = os.path.join(tempdir, ('temp-' + gen_base))
+bed_tempdir = serial_list['bed-tempdir']
 
-print('\ncreating directory: ' + gen_base_tempdir)
-Path(gen_base_tempdir).mkdir(parents=True, exist_ok=True)
+print('\ncreating directory: ' + bed_tempdir)
+Path(bed_tempdir).mkdir(parents=True, exist_ok=True)
+
 
 input_bim = os.path.join(data_dir, (gen_base + '.bim'))
-temp_bim = os.path.join(gen_base_tempdir, (gen_base + '.bim')) 
+temp_bim = os.path.join(bed_tempdir, (gen_base + '.bim')) 
 
 input_bed = os.path.join(data_dir, (gen_base + '.bed'))
-temp_bed = os.path.join(gen_base_tempdir, (gen_base + '.bed')) 
+temp_bed = os.path.join(bed_tempdir, (gen_base + '.bed')) 
 
-temp_fam = os.path.join(gen_base_tempdir, (gen_base + '.fam')) 
+temp_fam = os.path.join(bed_tempdir, (gen_base + '.fam')) 
 
 plink_path = os.path.join(plink_tempdir, (gen_base + '.coreset'))
 
-gen_base_path = os.path.join(gen_base_tempdir, gen_base)
+gen_base_path = os.path.join(bed_tempdir, gen_base)
 
 
 ## == data files for plink ==

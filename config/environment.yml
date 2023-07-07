@@ -2,5 +2,6 @@ name: bolt
 channels:
 - bioconda
 dependencies:
+- python=3.10
 - pandas
 - pyyaml

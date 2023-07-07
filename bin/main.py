@@ -144,6 +144,10 @@ print('\ncreating temporary directory ' + tempdir)
 Path(tempdir).mkdir(parents=True, exist_ok=True)
 
 ## temporary directory for the reformatted bim files, bed and fam files per chromosome
+bed_tempdir = os.path.join(tempdir, 'temp-bed')
+Path(bed_tempdir).mkdir(parents=True, exist_ok=True)
+
+## temporary directory for plink filtered output per chromosome
 plink_tempdir = os.path.join(tempdir, 'temp-plink')
 Path(plink_tempdir).mkdir(parents=True, exist_ok=True)
 
@@ -187,7 +191,8 @@ serial_data = {'chr-list': chr_list,
                'gen-list': gen_base_list,
                'imp-list': imp_base_list,
                'tempdir': tempdir,
-               'plink-tempdir': plink_tempdir}
+               'plink-tempdir': plink_tempdir,
+               'bed-tempdir': bed_tempdir}
 
 with open(json_file_plink, "w" ) as fh:
     json.dump(serial_data, fh )
