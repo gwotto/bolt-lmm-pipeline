@@ -66,7 +66,7 @@ example configuration file is located in
 this file to a convenient location and edit the configuration to your
 needs. For pipeline tests, an example phenotype file
 `/rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/data/sample.phenotype.txt`
-can be used. In this example configuration, only the output directory needs to be set.
+can be used.
 
 #### Data files
 
@@ -78,14 +78,15 @@ can be used. In this example configuration, only the output directory needs to b
    individual). Any number of columns may follow. Values of -9 and NA
    are interpreted as missing data. All other values in the column
    should be numeric.
-2. fam file.
-3. Sample file (bolt --sampleFile argument).
+2. Sample information file for genotype data in .fam format.
+3. Sample information file for imputed data in Oxford .sample format
+   (used in bolt --sampleFile argument).
 4. Data directory containing core snp files (in .bed and .bim format)
    and imputed snp files (in .bgen format). Currently these are
    ukb_gen_chr\*.bim, ukb_gen_chr\*.bed, and ukb_imp_chr\*.bgen files
    in
    `/rds/general/project/uk-biobank-2017/live/reference/sdata_latest/`
-   by default.
+   by default. (TODO)
 5. A file that is listing missing samples to remove (for the bolt
    --remove argument), e.g. samples in the fam-file that are missing
    in the sample-file. This is a header-less tab-delimited text file,
