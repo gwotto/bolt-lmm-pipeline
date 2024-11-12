@@ -26,13 +26,13 @@ methods:
 
 1. Environment modules, which load installed software into the search
    path. This is carried out by the pipeline itself. Required modules
-   need to be listed in the configuration file.
+   are listed in the configuration file.
 2. The Conda enironment which provides python, python packages and
    other software defined by the user. For instructions on how to use
    a conda environment see
-   https://www.imperial.ac.uk/admin-services/ict/self-service/research-support/rcs/support/applications/python/. When
-   using conda for the first time on the cluster you need to set it
-   up:
+   https://www.imperial.ac.uk/admin-services/ict/self-service/research-support/rcs/support/applications/python/. 
+   
+When using conda for the first time on the cluster, you need to set it up for your environment:
 
 ```bash
 module load anaconda3/personal
@@ -48,16 +48,7 @@ module load anaconda3/personal
 conda env create --file /path/to/config/environment.yml
 ```
 
-4. The steps above have to be carried out only once. After that, each
-   time you run the pipline in a new terminal, you have to load conda
-   into your path and activate the `bolt` environment.
-
-```bash
-module load anaconda3/personal
-source activate bolt
-```
-
-5. If the environment.yml file has been modified, e.g. in a newer
+4. If the environment.yml file has been modified, e.g. in a newer
    version of the pipeline, the environment can be updated like this:
 
 ```bash
@@ -71,37 +62,39 @@ conda env update --file /path/to/config/environment.yml
 
 The pipeline run is configured by the yaml-format file config.yml. An
 example configuration file is located in
-/rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/config/config.yml. Copy
+`/rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/config/config.yml`. Copy
 this file to a convenient location and edit the configuration to your
-needs. For pipeline tests, the phenotype file
-/rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/data/sample.phenotype.txt
-can be used, but at least the output directory needs to be adjusted.
+needs. For pipeline tests, an example phenotype file
+`/rds/general/project/uk-biobank-2020/live/software/bolt-lmm-pipeline/data/sample.phenotype.txt`
+can be used.
 
 #### Data files
 
 1. Phenotype file, containing phenotypes and covariates, with the
    first line containing column headers and subsequent lines
    containing records, one per individual. bolt-lmm requires this to
-   be a whitespace-delimited file, i.e. tab-delimited will do. The
+   be a whitespace-delimited file, so tab-delimited will do. The
    first two columns must be FID and IID (the PLINK identifiers of an
    individual). Any number of columns may follow. Values of -9 and NA
    are interpreted as missing data. All other values in the column
    should be numeric.
-2. fam file.
-3. Sample file (bolt --sampleFile argument).
+2. Sample information file for genotype data in .fam format.
+3. Sample information file for imputed data in Oxford .sample format
+   (used in bolt --sampleFile argument).
 4. Data directory containing core snp files (in .bed and .bim format)
    and imputed snp files (in .bgen format). Currently these are
    ukb_gen_chr\*.bim, ukb_gen_chr\*.bed, and ukb_imp_chr\*.bgen files
    in
-   /rds/general/project/uk-biobank-2017/live/reference/sdata_latest/
-   by default.
-5. File listing missing samples to remove (bolt --remove argument),
-   e.g. samples in the fam-file that are missing in the
-   sample-file. This is a header-less tab-delimited text file, FID IID
-   must be the first two columns. If samples are missing and no
-   remove-file is provided, bolt-lmm produces a file listing the
-   samples to remove and exits with an error. The generated file can
-   subsequently be used as the missing samples list.
+   `/rds/general/project/uk-biobank-2017/live/reference/sdata_latest/`
+   by default. (TODO)
+5. A file that is listing missing samples to remove (for the bolt
+   --remove argument), e.g. samples in the fam-file that are missing
+   in the sample-file. This is a header-less tab-delimited text file,
+   FID and IID must be the first two columns. If samples are missing
+   and no such remove-file is provided, bolt-lmm produces a file
+   listing the samples to remove and exits with an error. The
+   generated file can subsequently be used as the missing samples
+   list.
    
 #### Covariates
 
