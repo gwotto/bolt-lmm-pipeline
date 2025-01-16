@@ -33,14 +33,15 @@ remove-samples-list:
 ### INPUT DATA ########################################################
 ############################################################################
 
-## Sample information file for imputed data in Oxford .sample format
+## Sample information file for imputed data in bgen format format, required by bolt-lmm
 sample-file: /rds/general/project/medbio-epiukb-archive-2018/live/UKB_pheno/UKBdownloads/ukb23_imp_chr21_v2_s487406.sample
-## Sample information file for genotype data in .fam format.
+
+## Sample information file for genotype data in .fam format, required by plink to generate 
 fam-file: /rds/general/project/medbio-epiukb-archive-2018/live/UKB_pheno/UKBdownloads/ukb23_cal_chr21_v2_s488374.fam
 
 ## directory containing core snp files (.bed and .bim format) and imputed snp files (.bgen format)
 ## fixed 2018 release (v3), points to files in release_12032018
-data-dir: /rds/general/project/uk-biobank-2017/live/reference/sdata_2024-03-04
+data-dir: /rds/general/project/uk-biobank-2017/live/reference/sdata_latest
 
 ## prefix of core snp files (.bed and .bim format) in data-dir
 gen-base: ukb_gen_chr
